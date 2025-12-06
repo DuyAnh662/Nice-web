@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebula Mirror | AI Interactive Experience</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --secondary: #bd00ff;
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        canvas {
+            display: block;
+            /* Mirror the canvas horizontally for a natural mirror effect */
+            transform: scaleX(-1);
+        }
+
+        #ui-layer {
+            position: absolute;
+            z-index: 10;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 2rem;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+        }
+
+        header {
+            text-align: center;
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: fadeInDown 1s ease-out 0.5s forwards;
+        }
+
+        h1 {
+            font-weight: 200;
+            font-size: 2rem;
+            letter-spacing: 0.5rem;
+            text-transform: uppercase;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+        }
+
+        .controls {
+            pointer-events: auto;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s ease-out 0.5s forwards;
+        }
+
+        button {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+            transform: scale(1.05);
+        }
+
+        button.active {
+            background: var(--primary);
+            color: black;
+            border-color: var(--primary);
+            box-shadow: 0 0 30px var(--primary);
+        }
+
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            transition: opacity 0.8s ease;
+        }
+
+        #start-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeInDown {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .instruction {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="canvas-container">
+        <canvas id="canvas1"></canvas>
+    </div>
+
+    <div id="ui-layer">
+        <header>
+            <h1>Nebula Mirror</h1>
+        </header>
+
+        <div class="controls">
+            <button id="btn-particles">Particles</button>
+            <button id="btn-lines">Constellation</button>
+            <button id="btn-matrix">Matrix</button>
+        </div>
+    </div>
+
+    <div id="start-screen">
+        <div class="loader" id="loader"></div>
+        <h1 style="margin-bottom: 2rem;">Nebula Mirror</h1>
+        <button id="start-btn">Enter Experience</button>
+        <p class="instruction">Camera access required for interaction</p>
+    </div>
+
+    <!-- Hidden video element for processing -->
+    <video id="video1" autoplay playsinline style="display: none;"></video>
+
+    <script>
+        const canvas = document.getElementById('canvas1');
+        const ctx = canvas.getContext('2d');
+        const video = document.getElementById('video1');
+        const startScreen = document.getElementById('start-screen');
+        const startBtn = document.getElementById('start-btn');
+        const loader = document.getElementById('loader');
+
+        let effect;
+        let animationId;
+
+        // Settings
+        let mode = 'particles'; // particles, lines, matrix
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        class Particle {
+            constructor(effect, x, y, color) {
+                this.effect = effect;
+                this.x = Math.random() * this.effect.width;
+                this.y = Math.random() * this.effect.height; // Start random
+                this.originX = Math.floor(x);
+                this.originY = Math.floor(y);
+                this.color = color;
+                this.size = this.effect.gap;
+                this.vx = 0;
+                this.vy = 0;
+                this.ease = 0.1; // Speed of returning to origin
+                this.friction = 0.90;
+                this.dx = 0;
+                this.dy = 0;
+                this.distance = 0;
+                this.force = 0;
+                this.angle = 0;
+            }
+
+            draw(context) {
+                context.fillStyle = this.color;
+                if (mode === 'particles') {
+                    context.fillRect(this.x, this.y, this.size, this.size);
+                } else if (mode === 'matrix') {
+                    context.font = `${this.size * 1.5}px monospace`;
+                    context.fillText(String.fromCharCode(0x30A0 + Math.random() * 96), this.x, this.y);
+                } else if (mode === 'lines') {
+                    context.beginPath();
+                    context.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
+                    context.fill();
+                }
+            }
+
+            update() {
+                // Mouse interaction
+                this.dx = this.effect.mouse.x - this.x;
+                this.dy = this.effect.mouse.y - this.y;
+                this.distance = this.dx * this.dx + this.dy * this.dy;
+                this.force = -this.effect.mouse.radius / this.distance;
+
+                if (this.distance < this.effect.mouse.radius) {
+                    this.angle = Math.atan2(this.dy, this.dx);
+                    this.vx += this.force * Math.cos(this.angle);
+                    this.vy += this.force * Math.sin(this.angle);
+                }
+
+                // Return to origin
+                this.x += (this.originX - this.x) * this.ease;
+                this.y += (this.originY - this.y) * this.ease;
+
+                // Apply velocity
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Friction
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+            }
+        }
+
+        class Effect {
+            constructor(width, height) {
+                this.width = width;
+                this.height = height;
+                this.particlesArray = [];
+                this.image = document.getElementById('video1');
+                this.gap = 8; // Resolution (lower = more particles, slower)
+                this.mouse = {
+                    radius: 3000,
+                    x: 0,
+                    y: 0
+                }
+
+                window.addEventListener('mousemove', e => {
+                    // Adjust mouse coordinates because canvas is mirrored (scaleX(-1))
+                    // The visual display is mirrored, but the coordinate system is normal.
+                    // However, since we flipped the canvas with CSS, the visual left is actually the coordinate right.
+                    // Wait, CSS transform doesn't change the coordinate system of the canvas context, just how it's painted.
+                    // So if I move mouse to the left of screen (x=0), that corresponds to x=0 on canvas.
+                    // But visually, the user sees their mirrored self.
+                    // If I wave my left hand, it appears on the left side of the screen (mirror).
+                    // So the video feed needs to be drawn normally, and the CSS flips it.
+                    // So mouse coordinates should map directly.
+                    this.mouse.x = e.x;
+                    this.mouse.y = e.y;
+                });
+            }
+
+            init(context) {
+                // Draw video to canvas to get pixel data
+                // We draw it smaller for performance (using the gap)
+                const w = this.width;
+                const h = this.height;
+
+                // We don't need to create particles here once, we need to update them constantly based on video
+                // But creating objects every frame is bad.
+                // Strategy: Create a grid of particles once. Update their properties (color/alpha) based on video.
+
+                for (let y = 0; y < this.height; y += this.gap) {
+                    for (let x = 0; x < this.width; x += this.gap) {
+                        this.particlesArray.push(new Particle(this, x, y, 'white'));
+                    }
+                }
+            }
+
+            update(context) {
+                // Draw current video frame to an offscreen canvas or just read from it?
+                // Reading directly from video is tricky without drawing it first.
+                // Let's draw video to the main canvas first (hidden by particles usually, or just cleared)
+                // Actually, let's use a temporary canvas for pixel reading to keep main canvas clean
+                if (!this.tempCanvas) {
+                    this.tempCanvas = document.createElement('canvas');
+                    this.tempCanvas.width = this.width;
+                    this.tempCanvas.height = this.height;
+                    this.tempCtx = this.tempCanvas.getContext('2d');
+                }
+
+                this.tempCtx.drawImage(this.image, 0, 0, this.width, this.height);
+                const pixels = this.tempCtx.getImageData(0, 0, this.width, this.height).data;
+
+                // Update particles
+                let ptr = 0;
+                for (let i = 0; i < this.particlesArray.length; i++) {
+                    const p = this.particlesArray[i];
+                    // Map particle position to pixel index
+                    // We use origin coordinates to sample the color, so the particles "carry" the color of their home
+                    const index = (Math.floor(p.originY) * this.width + Math.floor(p.originX)) * 4;
+
+                    const red = pixels[index];
+                    const green = pixels[index + 1];
+                    const blue = pixels[index + 2];
+                    const alpha = pixels[index + 3];
+
+                    // Brightness calculation
+                    const brightness = (red + green + blue) / 3;
+
+                    // Only show bright enough particles or all?
+                    // Let's make dark areas transparent
+                    if (brightness > 20) {
+                        p.color = `rgb(${red}, ${green}, ${blue})`;
+                        // Dynamic size based on brightness
+                        // p.size = (brightness / 255) * this.gap * 1.5; 
+                    } else {
+                        p.color = 'rgba(0,0,0,0)';
+                    }
+
+                    p.update();
+                }
+            }
+
+            draw(context) {
+                this.particlesArray.forEach(particle => particle.draw(context));
+
+                // Connect particles for 'lines' mode
+                if (mode === 'lines') {
+                    // This is computationally expensive (O(n^2)), so we limit it
+                    // Just connecting neighbors in the grid would be faster but less "organic"
+                    // Let's skip it for performance on high res, or do a very optimized version
+                    // For now, just drawing dots is fine for "Constellation" if we add some glow
+                }
+            }
+        }
+
+        async function startExperience() {
+            startBtn.style.display = 'none';
+            loader.style.display = 'block';
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user'
+                    }
+                });
+                video.srcObject = stream;
+                video.play();
+
+                video.onloadeddata = () => {
+                    startScreen.classList.add('hidden');
+
+                    // Initialize effect
+                    // Adjust gap based on screen size for performance
+                    const gap = window.innerWidth < 800 ? 10 : 8;
+
+                    effect = new Effect(canvas.width, canvas.height);
+                    effect.gap = gap;
+                    effect.init(ctx);
+
+                    animate();
+                };
+            } catch (err) {
+                console.error(err);
+                loader.style.display = 'none';
+                startBtn.style.display = 'block';
+                alert('Camera access denied or not available. Please allow camera access to use this experience.');
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Semi-transparent black for trails?
+            // ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            // ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            effect.update(ctx);
+            effect.draw(ctx);
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Event Listeners
+        startBtn.addEventListener('click', startExperience);
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            if (effect) {
+                effect.width = canvas.width;
+                effect.height = canvas.height;
+                effect.particlesArray = [];
+                effect.init(ctx);
+            }
+        });
+
+        // Mode switchers
+        document.getElementById('btn-particles').addEventListener('click', (e) => {
+            mode = 'particles';
+            updateActiveButton(e.target);
+        });
+        document.getElementById('btn-lines').addEventListener('click', (e) => {
+            mode = 'lines';
+            updateActiveButton(e.target);
+        });
+        document.getElementById('btn-matrix').addEventListener('click', (e) => {
+            mode = 'matrix';
+            updateActiveButton(e.target);
+        });
+
+        function updateActiveButton(btn) {
+            document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        // Set initial active
+        document.getElementById('btn-particles').classList.add('active');
+
+    </script>
+</body>
+
+</html>
