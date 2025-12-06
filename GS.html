@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sự Ngạc Nhiên Kinh Ngạc</title>
+    <style>
+        /* CSS để tạo phong cách cho hiệu ứng Matrix */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Ẩn thanh cuộn */
+            background: #000; /* Nền đen */
+        }
+        canvas {
+            display: block;
+        }
+        #surprise-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #0F0; /* Màu xanh neon */
+            font-family: monospace;
+            font-size: 2em;
+            text-shadow: 0 0 10px #0F0;
+            z-index: 10; /* Đặt chữ nằm trên hiệu ứng matrix */
+            opacity: 0;
+            animation: fadeIn 3s forwards;
+        }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Phần tử Canvas để vẽ hiệu ứng -->
+    <canvas id="matrixCanvas"></canvas>
+    
+    <!-- Đoạn văn bản bất ngờ -->
+    <div id="surprise-text">
+        Bất ngờ chưa? Chào mừng đến với Matrix.
+    </div>
+
+    <script>
+        // JavaScript để tạo hiệu ứng mưa ký tự
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Đặt kích thước canvas bằng kích thước cửa sổ trình duyệt
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Bảng ký tự (bao gồm các ký tự tiếng Việt có dấu)
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789' +
+                         'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + 
+                         'aáàảãạăắằẳẵặâấầẩẫậeéèẻẽẹêếềểễệiíìỉĩịoóòỏõọôốồổỗộơớờởỡợuúùủũụưứừửữựyýỳỷỹỵ';
+        
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+
+        // Mảng để theo dõi vị trí y của mỗi cột
+        const drops = [];
+        for (let i = 0; i < columns; i++) {
+            drops[i] = 1;
+        }
+
+        // Hàm vẽ hiệu ứng
+        function draw() {
+            // Hiệu ứng mờ dần (tail effect)
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0F0'; // Màu chữ
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                // Chọn một ký tự ngẫu nhiên từ bảng ký tự
+                const text = katakana.charAt(Math.floor(Math.random() * katakana.length));
+                
+                // Vẽ ký tự tại vị trí (x, y)
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                // Gửi giọt nước (ký tự) về đầu nếu nó rơi xuống đáy hoặc ngẫu nhiên
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+
+                // Tăng vị trí y để giọt nước tiếp tục rơi xuống
+                drops[i]++;
+            }
+        }
+
+        // Lặp lại hàm draw mỗi 33ms (khoảng 30fps)
+        setInterval(draw, 33);
+
+        // Xử lý thay đổi kích thước màn hình
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            columns = canvas.width / fontSize;
+            drops.length = columns;
+            for (let i = 0; i < columns; i++) {
+                drops[i] = 1;
+            }
+        });
+
+    </script>
+</body>
+</html>

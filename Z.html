@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phản Chiệu Kỳ Diệu</title>
+    <style>
+        /* Font chữ mang lại cảm giác công nghệ */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        /* Các phần tử ẩn để xử lý video */
+        #video, #canvas {
+            display: none;
+        }
+
+        /* Cảnh 3D */
+        .scene {
+            width: 200px;
+            height: 200px;
+            perspective: 600px;
+            margin: 40px;
+        }
+
+        /* Khối hộp 3D */
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s;
+        }
+
+        /* Mặt của khối hộp */
+        .cube-face {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border: 2px solid rgba(0, 255, 255, 0.8);
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.2), rgba(0, 0, 0, 0.4));
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5) inset;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #0ff;
+        }
+
+        .cube-face-front  { transform: rotateY(  0deg) translateZ(100px); }
+        .cube-face-right  { transform: rotateY( 90deg) translateZ(100px); }
+        .cube-face-back   { transform: rotateY(180deg) translateZ(100px); }
+        .cube-face-left   { transform: rotateY(-90deg) translateZ(100px); }
+        .cube-face-top    { transform: rotateX( 90deg) translateZ(100px); }
+        .cube-face-bottom { transform: rotateX(-90deg) translateZ(100px); }
+
+        /* Phần văn bản hướng dẫn */
+        .container {
+            text-align: center;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            font-weight: 900;
+            background: linear-gradient(45deg, #0ff, #f0f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #0ff; }
+            to { text-shadow: 0 0 20px #fff, 0 0 30px #f0f, 0 0 40px #f0f; }
+        }
+
+        p {
+            font-size: 1.2em;
+            color: #aaa;
+            margin-top: 20px;
+        }
+
+        #status {
+            color: #0ff;
+            font-weight: bold;
+            min-height: 1.5em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Phản Chiệu Kỳ Diệu</h1>
+        <p id="status">Đang khởi tạo...</p>
+    </div>
+
+    <!-- Cảnh 3D -->
+    <div class="scene">
+        <div class="cube" id="cube">
+            <div class="cube-face cube-face-front">TRƯỚC</div>
+            <div class="cube-face cube-face-back">SAU</div>
+            <div class="cube-face cube-face-right">PHẢI</div>
+            <div class="cube-face cube-face-left">TRÁI</div>
+            <div class="cube-face cube-face-top">TRÊN</div>
+            <div class="cube-face cube-face-bottom">DƯỚI</div>
+        </div>
+    </div>
+
+    <!-- Các phần tử ẩn để xử lý video -->
+    <video id="video" width="640" height="480" autoplay></video>
+    <canvas id="canvas" width="640" height="480"></canvas>
+
+    <script>
+        // Lấy các phần tử DOM cần thiết
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const statusText = document.getElementById('status');
+        const cube = document.getElementById('cube');
+        const ctx = canvas.getContext('2d');
+
+        const width = canvas.width;
+        const height = canvas.height;
+
+        let previousFrame = null;
+
+        // Hàm chính để khởi tạo
+        async function init() {
+            try {
+                // Yêu cầu truy cập webcam
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                video.play();
+
+                statusText.textContent = "Di chuyển để thấy điều kỳ diệu!";
+
+                // Khởi tạo khung hình trước là một khung hình đen
+                previousFrame = ctx.createImageData(width, height);
+
+                // Bắt đầu vòng lặp phát hiện chuyển động
+                requestAnimationFrame(detectMotion);
+
+            } catch (err) {
+                console.error("Không thể truy cập webcam:", err);
+                statusText.textContent = "Lỗi: Không thể truy cập webcam. Vui lòng kiểm tra lại quyền truy cập.";
+            }
+        }
+
+        // Hàm phát hiện chuyển động và cập nhật khối hộp 3D
+        function detectMotion() {
+            // Vẽ khung hình hiện tại của video lên canvas
+            ctx.drawImage(video, 0, 0, width, height);
+            
+            // Lấy dữ liệu pixel của khung hình hiện tại
+            const currentFrame = ctx.getImageData(0, 0, width, height);
+            
+            if (!previousFrame.data) {
+                previousFrame = currentFrame;
+                requestAnimationFrame(detectMotion);
+                return;
+            }
+
+            let motion = 0;
+            const pixelCount = width * height;
+            const pixelsToCheck = pixelCount * 0.05; // Chỉ kiểm tra 5% pixel để tăng hiệu suất
+
+            // Lặp qua các pixel để tính toán sự khác biệt
+            for (let i = 0; i < pixelsToCheck; i++) {
+                const pixelIndex = i * 4 * (pixelCount / pixelsToCheck); // Lấy mẫu ngẫu nhiên
+                
+                // Tính toán sự khác biệt về độ sáng giữa các khung hình
+                const rDiff = Math.abs(currentFrame.data[pixelIndex] - previousFrame.data[pixelIndex]);
+                const gDiff = Math.abs(currentFrame.data[pixelIndex + 1] - previousFrame.data[pixelIndex + 1]);
+                const bDiff = Math.abs(currentFrame.data[pixelIndex + 2] - previousFrame.data[pixelIndex + 2]);
+                
+                motion += (rDiff + gDiff + bDiff) / 3;
+            }
+
+            // Chuẩn hóa giá trị chuyển động
+            const avgMotion = motion / pixelsToCheck;
+            
+            // Ánh xạ mức độ chuyển động đến các thuộc tính transform của khối hộp
+            const scale = 1 + avgMotion * 0.8; // Co giãn theo chuyển động
+            const rotateY = avgMotion * 720; // Xoay theo trục Y
+            const rotateX = avgMotion * 360; // Xoay theo trục X
+
+            // Áp dụng transform
+            cube.style.transform = `scale(${scale}) rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+            
+            // Cập nhật khung hình trước cho lần kiểm tra tiếp theo
+            previousFrame = currentFrame;
+
+            // Tiếp tục vòng lặp
+            requestAnimationFrame(detectMotion);
+        }
+
+        // Bắt đầu chương trình khi trang tải xong
+        window.onload = init;
+    </script>
+
+</body>
+</html>

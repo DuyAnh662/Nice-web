@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Vũ Trụ Kỳ Diệu ✨</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #000;
+            overflow-x: hidden;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Starfield Background */
+        .starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        /* Aurora Effect */
+        .aurora {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.4;
+            filter: blur(100px);
+        }
+
+        .aurora-layer {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            animation: aurora-move 20s ease-in-out infinite alternate;
+        }
+
+        .aurora-layer:nth-child(1) {
+            background: radial-gradient(ellipse at 20% 50%, #ff006620 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 50%, #7000ff20 0%, transparent 50%);
+            animation-delay: 0s;
+        }
+
+        .aurora-layer:nth-child(2) {
+            background: radial-gradient(ellipse at 50% 20%, #00ff8820 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, #0066ff20 0%, transparent 50%);
+            animation-delay: -5s;
+        }
+
+        .aurora-layer:nth-child(3) {
+            background: radial-gradient(ellipse at 30% 30%, #ff00aa20 0%, transparent 40%),
+                radial-gradient(ellipse at 70% 70%, #00ffff20 0%, transparent 40%);
+            animation-delay: -10s;
+        }
+
+        @keyframes aurora-move {
+            0% {
+                transform: translate(-25%, -25%) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(0%, 0%) rotate(10deg);
+            }
+        }
+
+        /* Main Content */
+        .container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        /* Glowing Title */
+        .main-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 8vw, 6rem);
+            font-weight: 900;
+            text-align: center;
+            background: linear-gradient(135deg,
+                    #ff0080 0%,
+                    #ff8c00 14%,
+                    #ffd700 28%,
+                    #00ff88 42%,
+                    #00bfff 56%,
+                    #8a2be2 70%,
+                    #ff0080 84%,
+                    #ff8c00 100%);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-flow 3s ease infinite, float 6s ease-in-out infinite;
+            text-shadow: 0 0 80px rgba(255, 0, 128, 0.5);
+            filter: drop-shadow(0 0 30px rgba(138, 43, 226, 0.5));
+        }
+
+        @keyframes gradient-flow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px) scale(1);
+            }
+
+            50% {
+                transform: translateY(-20px) scale(1.02);
+            }
+        }
+
+        /* Subtitle */
+        .subtitle {
+            margin-top: 1rem;
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            animation: fadeInUp 1s ease 0.5s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 3D Card Container */
+        .card-container {
+            margin-top: 4rem;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .magic-card {
+            width: 280px;
+            height: 380px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: cardFloat 4s ease-in-out infinite;
+            cursor: pointer;
+        }
+
+        .magic-card:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .magic-card:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        .magic-card:nth-child(3) {
+            animation-delay: 1s;
+        }
+
+        @keyframes cardFloat {
+
+            0%,
+            100% {
+                transform: translateY(0) rotateX(0) rotateY(0);
+            }
+
+            25% {
+                transform: translateY(-15px) rotateX(5deg) rotateY(5deg);
+            }
+
+            75% {
+                transform: translateY(-10px) rotateX(-5deg) rotateY(-5deg);
+            }
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            border-radius: 24px;
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.1) 0%,
+                    rgba(255, 255, 255, 0.05) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .magic-card:hover .card-inner {
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow:
+                0 30px 60px rgba(0, 0, 0, 0.5),
+                0 0 60px rgba(138, 43, 226, 0.3),
+                inset 0 0 60px rgba(255, 255, 255, 0.1);
+        }
+
+        .card-glow {
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            top: -25%;
+            left: -25%;
+            background: conic-gradient(from var(--angle, 0deg),
+                    transparent,
+                    var(--glow-color, #ff0080),
+                    transparent,
+                    transparent,
+                    transparent);
+            animation: rotate-glow 4s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .magic-card:hover .card-glow {
+            opacity: 1;
+        }
+
+        @keyframes rotate-glow {
+            to {
+                --angle: 360deg;
+            }
+        }
+
+        @property --angle {
+            syntax: '<angle>';
+            initial-value: 0deg;
+            inherits: false;
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .card-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 20px currentColor);
+            }
+
+            50% {
+                transform: scale(1.1);
+                filter: drop-shadow(0 0 40px currentColor);
+            }
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-desc {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Particle Effect on Click */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            animation: particle-fly 1s ease-out forwards;
+        }
+
+        @keyframes particle-fly {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(var(--tx), var(--ty)) scale(0);
+            }
+        }
+
+        /* Interactive Orb */
+        .orb-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .orb {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%,
+                    rgba(255, 255, 255, 0.3),
+                    rgba(138, 43, 226, 0.2) 30%,
+                    rgba(0, 191, 255, 0.1) 60%,
+                    transparent 70%);
+            animation: orb-pulse 4s ease-in-out infinite;
+            filter: blur(40px);
+        }
+
+        @keyframes orb-pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.3;
+            }
+
+            50% {
+                transform: scale(1.5);
+                opacity: 0.5;
+            }
+        }
+
+        /* Mouse Trail Effect */
+        .trail {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: screen;
+        }
+
+        /* Shooting Stars */
+        .shooting-star {
+            position: fixed;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, white, transparent);
+            animation: shoot 1s ease-out forwards;
+            z-index: 2;
+        }
+
+        @keyframes shoot {
+            0% {
+                transform: translateX(0) translateY(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(500px) translateY(300px);
+                opacity: 0;
+            }
+        }
+
+        /* Button */
+        .magic-button {
+            margin-top: 3rem;
+            padding: 1rem 3rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, #8a2be2, #ff0080);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease 1s both;
+        }
+
+        .magic-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .magic-button:hover::before {
+            left: 100%;
+        }
+
+        .magic-button:hover {
+            transform: scale(1.1);
+            box-shadow:
+                0 10px 40px rgba(138, 43, 226, 0.5),
+                0 0 60px rgba(255, 0, 128, 0.3);
+        }
+
+        /* Sound Wave */
+        .sound-waves {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            z-index: 100;
+            cursor: pointer;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .wave-bar {
+            width: 4px;
+            background: linear-gradient(to top, #ff0080, #8a2be2);
+            border-radius: 2px;
+            animation: wave 0.5s ease-in-out infinite alternate;
+        }
+
+        .wave-bar:nth-child(1) {
+            height: 15px;
+            animation-delay: 0s;
+        }
+
+        .wave-bar:nth-child(2) {
+            height: 25px;
+            animation-delay: 0.1s;
+        }
+
+        .wave-bar:nth-child(3) {
+            height: 20px;
+            animation-delay: 0.2s;
+        }
+
+        .wave-bar:nth-child(4) {
+            height: 30px;
+            animation-delay: 0.3s;
+        }
+
+        .wave-bar:nth-child(5) {
+            height: 18px;
+            animation-delay: 0.4s;
+        }
+
+        @keyframes wave {
+            from {
+                transform: scaleY(1);
+            }
+
+            to {
+                transform: scaleY(0.5);
+            }
+        }
+
+        /* Floating Shapes */
+        .floating-shape {
+            position: fixed;
+            z-index: 3;
+            opacity: 0.5;
+            animation: shape-float 20s linear infinite;
+        }
+
+        @keyframes shape-float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+            }
+
+            100% {
+                transform: translateY(-100px) rotate(720deg);
+            }
+        }
+
+        /* Loading Screen */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-ring {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #ff0080;
+            border-right-color: #8a2be2;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: fixed;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.2s;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Interactive Ripple */
+        .ripple {
+            position: fixed;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+            animation: ripple-expand 1s ease-out forwards;
+            z-index: 100;
+        }
+
+        @keyframes ripple-expand {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+
+            100% {
+                width: 200px;
+                height: 200px;
+                opacity: 0;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .card-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .magic-card {
+                width: 90%;
+                max-width: 300px;
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Loading Screen -->
+    <div class="loader" id="loader">
+        <div class="loader-ring"></div>
+    </div>
+
+    <!-- Starfield -->
+    <div class="starfield" id="starfield"></div>
+
+    <!-- Aurora -->
+    <div class="aurora">
+        <div class="aurora-layer"></div>
+        <div class="aurora-layer"></div>
+        <div class="aurora-layer"></div>
+    </div>
+
+    <!-- Central Orb -->
+    <div class="orb-container">
+        <div class="orb"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1 class="main-title">✨ Chào Mừng Đến Vũ Trụ ✨</h1>
+        <p class="subtitle">Khám phá thế giới kỳ diệu của ánh sáng và màu sắc</p>
+
+        <div class="card-container">
+            <div class="magic-card" style="--glow-color: #ff0080;">
+                <div class="card-glow"></div>
+                <div class="card-inner">
+                    <div class="card-content">
+                        <div class="card-icon" style="color: #ff0080;">🌌</div>
+                        <h3 class="card-title">Thiên Hà</h3>
+                        <p class="card-desc">Hàng tỷ ngôi sao đang chờ đợi bạn khám phá trong vũ trụ bao la này.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="magic-card" style="--glow-color: #00ff88;">
+                <div class="card-glow"></div>
+                <div class="card-inner">
+                    <div class="card-content">
+                        <div class="card-icon" style="color: #00ff88;">🔮</div>
+                        <h3 class="card-title">Phép Thuật</h3>
+                        <p class="card-desc">Mỗi click chuột là một phép màu đang chờ được khám phá!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="magic-card" style="--glow-color: #00bfff;">
+                <div class="card-glow"></div>
+                <div class="card-inner">
+                    <div class="card-content">
+                        <div class="card-icon" style="color: #00bfff;">💫</div>
+                        <h3 class="card-title">Ước Mơ</h3>
+                        <p class="card-desc">Biến những ước mơ thành hiện thực với sức mạnh của trí tưởng tượng.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="magic-button" id="magicBtn">✨ Tạo Phép Màu ✨</button>
+    </div>
+
+    <!-- Sound Wave Indicator -->
+    <div class="sound-waves" id="soundToggle" title="Click để bật/tắt nhạc">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Create starfield
+        function createStars() {
+            const starfield = document.getElementById('starfield');
+            for (let i = 0; i < 200; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.setProperty('--duration', Math.random() * 3 + 2 + 's');
+                star.style.animationDelay = Math.random() * 5 + 's';
+                starfield.appendChild(star);
+            }
+        }
+
+        // Create floating shapes
+        function createFloatingShapes() {
+            const shapes = ['◆', '◇', '○', '△', '☆'];
+            const colors = ['#ff0080', '#8a2be2', '#00ff88', '#00bfff', '#ffd700'];
+
+            setInterval(() => {
+                const shape = document.createElement('div');
+                shape.className = 'floating-shape';
+                shape.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+                shape.style.left = Math.random() * 100 + '%';
+                shape.style.color = colors[Math.floor(Math.random() * colors.length)];
+                shape.style.fontSize = Math.random() * 20 + 10 + 'px';
+                shape.style.animationDuration = Math.random() * 10 + 15 + 's';
+                document.body.appendChild(shape);
+
+                setTimeout(() => shape.remove(), 25000);
+            }, 2000);
+        }
+
+        // Mouse trail effect
+        let trails = [];
+        const trailColors = ['#ff0080', '#8a2be2', '#00ff88', '#00bfff', '#ffd700'];
+
+        document.addEventListener('mousemove', (e) => {
+            const trail = document.createElement('div');
+            trail.className = 'trail';
+            trail.style.left = e.clientX - 10 + 'px';
+            trail.style.top = e.clientY - 10 + 'px';
+            trail.style.background = `radial-gradient(circle, ${trailColors[Math.floor(Math.random() * trailColors.length)]}, transparent)`;
+            document.body.appendChild(trail);
+
+            trails.push(trail);
+
+            setTimeout(() => {
+                trail.style.transform = 'scale(0)';
+                trail.style.opacity = '0';
+                trail.style.transition = 'all 0.5s ease';
+            }, 50);
+
+            setTimeout(() => {
+                trail.remove();
+                trails.shift();
+            }, 500);
+        });
+
+        // Click particle explosion
+        document.addEventListener('click', (e) => {
+            createRipple(e);
+            createParticles(e);
+        });
+
+        function createRipple(e) {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            ripple.style.left = e.clientX - 100 + 'px';
+            ripple.style.top = e.clientY - 100 + 'px';
+            document.body.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 1000);
+        }
+
+        function createParticles(e) {
+            const emojis = ['✨', '⭐', '💫', '🌟', '💖', '🔮', '🎭', '🎪'];
+
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                particle.style.left = e.clientX + 'px';
+                particle.style.top = e.clientY + 'px';
+                particle.style.fontSize = Math.random() * 20 + 15 + 'px';
+
+                const angle = (Math.PI * 2 * i) / 15;
+                const distance = Math.random() * 100 + 50;
+                particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 1000);
+            }
+        }
+
+        // Shooting stars
+        function createShootingStar() {
+            const star = document.createElement('div');
+            star.className = 'shooting-star';
+            star.style.left = Math.random() * 50 + '%';
+            star.style.top = Math.random() * 30 + '%';
+            star.style.transform = `rotate(${Math.random() * 30 + 30}deg)`;
+            document.body.appendChild(star);
+            setTimeout(() => star.remove(), 1000);
+        }
+
+        setInterval(createShootingStar, 3000);
+
+        // Magic button
+        const magicBtn = document.getElementById('magicBtn');
+        magicBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+
+            // Create massive particle explosion
+            for (let j = 0; j < 5; j++) {
+                setTimeout(() => {
+                    for (let i = 0; i < 30; i++) {
+                        const particle = document.createElement('div');
+                        particle.className = 'particle';
+                        particle.textContent = ['✨', '⭐', '💫', '🌟', '💖', '🎆', '🎇', '🌈'][Math.floor(Math.random() * 8)];
+
+                        const rect = magicBtn.getBoundingClientRect();
+                        particle.style.left = rect.left + rect.width / 2 + 'px';
+                        particle.style.top = rect.top + 'px';
+                        particle.style.fontSize = Math.random() * 30 + 20 + 'px';
+
+                        const angle = (Math.PI * 2 * i) / 30;
+                        const distance = Math.random() * 200 + 100;
+                        particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                        particle.style.setProperty('--ty', (Math.sin(angle) * distance - 100) + 'px');
+
+                        document.body.appendChild(particle);
+                        setTimeout(() => particle.remove(), 1000);
+                    }
+                }, j * 200);
+            }
+
+            // Flash effect
+            document.body.style.transition = 'filter 0.1s';
+            document.body.style.filter = 'brightness(2)';
+            setTimeout(() => {
+                document.body.style.filter = 'brightness(1)';
+            }, 100);
+        });
+
+        // Card hover 3D effect
+        document.querySelectorAll('.magic-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+
+                const rotateX = (y - centerY) / 10;
+                const rotateY = (centerX - x) / 10;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+            });
+        });
+
+        // Loader
+        window.addEventListener('load', () => {
+            createStars();
+            createFloatingShapes();
+
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hidden');
+            }, 1500);
+        });
+
+        // Interactive parallax on mouse move
+        document.addEventListener('mousemove', (e) => {
+            const mouseX = e.clientX / window.innerWidth - 0.5;
+            const mouseY = e.clientY / window.innerHeight - 0.5;
+
+            document.querySelector('.orb').style.transform =
+                `translate(${mouseX * 50}px, ${mouseY * 50}px)`;
+        });
+
+        // Keyboard magic
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                magicBtn.click();
+            }
+        });
+
+        // Console easter egg
+        console.log('%c✨ Chào mừng bạn đến với Vũ Trụ Kỳ Diệu! ✨',
+            'font-size: 24px; color: #ff0080; text-shadow: 0 0 10px #8a2be2;');
+        console.log('%cĐược tạo bởi AI với ❤️',
+            'font-size: 14px; color: #00ff88;');
+    </script>
+</body>
+
+</html>
