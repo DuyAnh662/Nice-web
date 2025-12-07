@@ -1,48 +1,101 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D Hand Control - iOS Fixed</title>
+    <title>3D Hand Control by Gemini</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; }
-        
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
         /* Container cho 3D */
-        #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #canvas3d {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            /* Above particles, below UI */
+            pointer-events: none;
+            /* Let clicks pass through to particles */
+            mix-blend-mode: screen;
+            /* Cool blending effect */
+        }
+
         /* Màn hình chờ */
         #loading {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #00ffcc; font-size: 18px; z-index: 20; pointer-events: none;
-            text-align: center; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00ffcc;
+            font-size: 18px;
+            z-index: 20;
+            pointer-events: none;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
             border: 1px solid #00ffcc;
         }
 
         /* --- KHU VỰC HUD (Webcam Mini) --- */
         #hud-wrapper {
-            position: absolute; bottom: 20px; right: 20px; z-index: 10;
-            display: flex; flex-direction: column; align-items: flex-end;
-            pointer-events: none; /* Để bấm xuyên qua được nếu cần */
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            pointer-events: none;
+            /* Để bấm xuyên qua được nếu cần */
         }
 
         .cam-box {
             position: relative;
-            width: 160px; height: 120px;
+            width: 160px;
+            height: 120px;
             border: 2px solid #00ffcc;
             background: #000;
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
-            transform: scaleX(-1); /* Lật ngược gương giống soi gương */
+            transform: scaleX(-1);
+            /* Lật ngược gương giống soi gương */
         }
 
         /* Video gốc và Canvas vẽ xương tay */
-        .input_video { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            object-fit: cover; 
+        .input_video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
-        .output_canvas { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+
+        .output_canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
 
         /* Hướng dẫn sử dụng */
@@ -50,19 +103,35 @@
             margin-bottom: 10px;
             background: rgba(0, 20, 40, 0.8);
             border: 1px solid rgba(0, 255, 204, 0.5);
-            color: #fff; padding: 10px; border-radius: 8px;
-            font-size: 12px; width: 200px; text-align: right;
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            width: 200px;
+            text-align: right;
             backdrop-filter: blur(5px);
         }
-        .guide-box b { color: #00ffcc; }
-        
+
+        .guide-box b {
+            color: #00ffcc;
+        }
+
         /* Chỉ hiển thị trên mobile */
         @media (max-width: 600px) {
-            .cam-box { width: 120px; height: 160px; } /* Camera dọc cho điện thoại */
-            .guide-box { width: 150px; font-size: 11px; }
+            .cam-box {
+                width: 120px;
+                height: 160px;
+            }
+
+            /* Camera dọc cho điện thoại */
+            .guide-box {
+                width: 150px;
+                font-size: 11px;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div id="loading">
@@ -70,8 +139,10 @@
         <small>Vui lòng chờ & Cho phép Camera</small>
     </div>
 
-    <div id="canvas-container"></div>
-
+    <div id="canvas-container">
+        <canvas id="canvas1"></canvas>
+        <canvas id="canvas3d"></canvas>
+    </div>
     <div id="hud-wrapper">
         <div class="guide-box">
             <div>🖐 <b>Mở tay:</b> Phóng to vật thể</div>
@@ -79,77 +150,102 @@
             <div>👋 <b>Di chuyển:</b> Xoay camera</div>
             <div style="margin-top:5px; color:#aaa; font-style:italic;">(Đặt tay vào khung bên dưới)</div>
         </div>
-        
+
         <div class="cam-box">
             <video class="input_video" playsinline webkit-playsinline muted autoplay></video>
             <canvas class="output_canvas"></canvas>
         </div>
     </div>
 
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
     <script>
         // --- 1. SETUP THREE.JS (ĐỒ HỌA) ---
         const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x000510, 0.02); // Sương mù tím đen
+        const canvas3d = document.getElementById('canvas3d');
 
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 6;
+        // Define global variables for Three.js objects
+        let scene, camera, renderer, group, outerMesh, innerMesh, stars;
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Tối ưu cho mobile
-        container.appendChild(renderer.domElement);
+        function init3D() {
+            scene = new THREE.Scene();
+            // Optional: Fog for depth
+            // scene.fog = new THREE.FogExp2(0x000000, 0.02);
 
-        // Ánh sáng
-        const ambientLight = new THREE.AmbientLight(0x404040);
-        scene.add(ambientLight);
-        const pointLight1 = new THREE.PointLight(0x00ffcc, 1.5, 50);
-        pointLight1.position.set(2, 2, 5);
-        scene.add(pointLight1);
-        const pointLight2 = new THREE.PointLight(0xff00cc, 1.5, 50);
-        pointLight2.position.set(-2, -2, 5);
-        scene.add(pointLight2);
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 6;
 
-        // VẬT THỂ: LÕI CÔNG NGHỆ CAO
-        const group = new THREE.Group();
-        scene.add(group);
+            renderer = new THREE.WebGLRenderer({ canvas: canvas3d, antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        // Vỏ ngoài (Icosahedron)
-        const outerGeo = new THREE.IcosahedronGeometry(1.2, 0);
-        const outerMat = new THREE.MeshStandardMaterial({ 
-            color: 0x00ffcc, wireframe: true, emissive: 0x00ffcc, emissiveIntensity: 0.2
-        });
-        const outerMesh = new THREE.Mesh(outerGeo, outerMat);
-        group.add(outerMesh);
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            const pointLight1 = new THREE.PointLight(0x00f2ff, 1.5, 50);
+            pointLight1.position.set(5, 5, 5);
+            scene.add(pointLight1);
+            const pointLight2 = new THREE.PointLight(0xbd00ff, 1.5, 50);
+            pointLight2.position.set(-5, -5, 5);
+            scene.add(pointLight2);
 
-        // Lõi trong (Khối đặc)
-        const innerGeo = new THREE.OctahedronGeometry(0.6, 0);
-        const innerMat = new THREE.MeshStandardMaterial({ 
-            color: 0xff00cc, roughness: 0.2, metalness: 0.8
-        });
-        const innerMesh = new THREE.Mesh(innerGeo, innerMat);
-        group.add(innerMesh);
+            // VẬT THỂ: "QUANTUM CORE" (Đẹp hơn)
+            group = new THREE.Group();
+            scene.add(group);
 
-        // Sao nền
-        const starGeo = new THREE.BufferGeometry();
-        const starCount = 800;
-        const starPos = new Float32Array(starCount * 3);
-        for(let i=0; i<starCount*3; i++) starPos[i] = (Math.random() - 0.5) * 60;
-        starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-        const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.05}));
-        scene.add(stars);
+            // 1. Vỏ ngoài (Cầu đa diện phức tạp)
+            const outerGeo = new THREE.IcosahedronGeometry(1.5, 1);
+            const outerMat = new THREE.MeshPhongMaterial({
+                color: 0x00f2ff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.3,
+                shininess: 100,
+                emissive: 0x00f2ff,
+                emissiveIntensity: 0.5
+            });
+            outerMesh = new THREE.Mesh(outerGeo, outerMat);
+            group.add(outerMesh);
 
-        // Biến điều khiển
-        let targetScale = 1;
-        let currentScale = 1;
-        let targetRotX = 0, targetRotY = 0;
-        let lastX = 0.5, lastY = 0.5;
+            // 2. Lõi trong (Khối phát sáng)
+            const innerGeo = new THREE.OctahedronGeometry(0.8, 0);
+            const innerMat = new THREE.MeshPhongMaterial({
+                color: 0xbd00ff,
+                shininess: 100,
+                emissive: 0xbd00ff,
+                emissiveIntensity: 0.8,
+                flatShading: true
+            });
+            innerMesh = new THREE.Mesh(innerGeo, innerMat);
+            group.add(innerMesh);
+
+            // 3. Vòng bao (Torus Ring)
+            const ringGeo = new THREE.TorusGeometry(2.2, 0.05, 16, 100);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2 });
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.rotation.x = Math.PI / 2;
+            group.add(ring);
+
+            // 4. Sao nền (Background Particles)
+            const starGeo = new THREE.BufferGeometry();
+            const starCount = 1000;
+            const starPos = new Float32Array(starCount * 3);
+            for (let i = 0; i < starCount * 3; i++) {
+                starPos[i] = (Math.random() - 0.5) * 50;
+            }
+            starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+            stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.05, transparent: true, opacity: 0.8 }));
+            scene.add(stars);
+        }
+
+        init3D();
 
         // --- 2. SETUP MEDIAPIPE (AI CAMERA) ---
         const videoElement = document.querySelector('.input_video');
@@ -168,18 +264,18 @@
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             // Vẽ ảnh webcam (nếu muốn)
             // canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-            
+
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 const landmarks = results.multiHandLandmarks[0];
 
                 // Vẽ xương tay lên HUD mini
-                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00ffcc', lineWidth: 2});
-                drawLandmarks(canvasCtx, landmarks, {color: '#ff00cc', lineWidth: 1, radius: 2});
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00ffcc', lineWidth: 2 });
+                drawLandmarks(canvasCtx, landmarks, { color: '#ff00cc', lineWidth: 1, radius: 2 });
 
                 // LOGIC ĐIỀU KHIỂN
                 const wrist = landmarks[0];
                 const middleTip = landmarks[12];
-                
+
                 // Đo khoảng cách (Zoom)
                 const distance = Math.sqrt(
                     Math.pow(middleTip.x - wrist.x, 2) + Math.pow(middleTip.y - wrist.y, 2)
@@ -194,11 +290,11 @@
                 const palmX = landmarks[9].x;
                 const palmY = landmarks[9].y;
                 const sensitivity = 5; // Độ nhạy xoay
-                
+
                 // Tính độ lệch xoay
-                targetRotY += (palmX - lastX) * -sensitivity; 
+                targetRotY += (palmX - lastX) * -sensitivity;
                 targetRotX += (palmY - lastY) * sensitivity;
-                
+
                 lastX = palmX;
                 lastY = palmY;
 
@@ -210,9 +306,11 @@
             canvasCtx.restore();
         }
 
-        const hands = new Hands({locateFile: (file) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-        }});
+        const hands = new Hands({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            }
+        });
 
         hands.setOptions({
             maxNumHands: 1,
@@ -225,37 +323,54 @@
         // Camera setup cho iOS
         const cameraUtils = new Camera(videoElement, {
             onFrame: async () => {
-                await hands.send({image: videoElement});
+                await hands.send({ image: videoElement });
             },
             width: 480, // Giảm độ phân giải chút để mobile chạy nhanh
             height: 640
         });
-        
+
         // Bắt lỗi camera
         cameraUtils.start().catch(err => {
             loadingDiv.innerHTML = "❌ Lỗi Camera: " + err + "<br>Hãy thử mở bằng Safari và chọn HTTPS.";
         });
 
-        // --- 3. ANIMATION LOOP ---
+        // Biến điều khiển (moved from original Three.js setup)
+        let targetScale = 1;
+        let currentScale = 1;
+        let targetRotX = 0, targetRotY = 0;
+        let lastX = 0.5, lastY = 0.5;
+
+        let animationId; // For requestAnimationFrame
         function animate() {
             requestAnimationFrame(animate);
 
-            // Lerp để mượt chuyển động
+            // Lerp để mượt chuyển động (Logic điều khiển bằng tay)
             currentScale += (targetScale - currentScale) * 0.1;
-            
-            group.scale.set(currentScale, currentScale, currentScale);
-            group.rotation.y += (targetRotY - group.rotation.y) * 0.1;
-            group.rotation.x += (targetRotX - group.rotation.x) * 0.1;
 
-            // Hiệu ứng "sống"
-            outerMesh.rotation.z -= 0.01;
-            outerMesh.rotation.y -= 0.005;
-            innerMesh.rotation.x += 0.02;
-            
+            if (group) {
+                group.scale.set(currentScale, currentScale, currentScale);
+                group.rotation.y += (targetRotY - group.rotation.y) * 0.1;
+                group.rotation.x += (targetRotX - group.rotation.x) * 0.1;
+            }
+
+            // Hiệu ứng "sống" (Tự động quay)
+            if (outerMesh) {
+                outerMesh.rotation.z -= 0.01;
+                outerMesh.rotation.y -= 0.005;
+            }
+            if (innerMesh) {
+                innerMesh.rotation.x += 0.02;
+                innerMesh.rotation.y += 0.01;
+            }
+
             // Sao xoay theo
-            stars.rotation.y = group.rotation.y * 0.2;
+            if (stars && group) {
+                stars.rotation.y = group.rotation.y * 0.2;
+            }
 
-            renderer.render(scene, camera);
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
         }
 
         window.addEventListener('resize', () => {
@@ -267,4 +382,5 @@
         animate();
     </script>
 </body>
+
 </html>
