@@ -1,112 +1,450 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sự Ngạc Nhiên Kinh Ngạc</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>CYBER CORE by Gemini</title>
+    <!-- Thêm font hiện đại -->
+    <link href="fonts.googleapis.com" rel="stylesheet">
     <style>
-        /* CSS để tạo phong cách cho hiệu ứng Matrix */
+        :root {
+            --neon-blue: #00fffb;
+            --dark-bg: #000000;
+            --accent-purple: #ff00ff;
+        }
         body {
             margin: 0;
-            padding: 0;
-            overflow: hidden; /* Ẩn thanh cuộn */
-            background: #000; /* Nền đen */
+            overflow: hidden;
+            background-color: var(--dark-bg);
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--neon-blue);
         }
-        canvas {
-            display: block;
+
+        /* Container cho 3D */
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
         }
-        #surprise-text {
+
+        #canvas3d {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+        }
+
+        /* Màn hình chờ */
+        #loading {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #0F0; /* Màu xanh neon */
-            font-family: monospace;
-            font-size: 2em;
-            text-shadow: 0 0 10px #0F0;
-            z-index: 10; /* Đặt chữ nằm trên hiệu ứng matrix */
-            opacity: 0;
-            animation: fadeIn 3s forwards;
+            color: var(--neon-blue);
+            font-size: 20px;
+            z-index: 20;
+            pointer-events: none;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 25px 40px;
+            border-radius: 5px;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 255, 251, 0.5);
+            font-family: 'Orbitron', sans-serif;
+            animation: pulse 1.5s infinite alternate;
         }
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
+
+        @keyframes pulse {
+            from { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            to { transform: translate(-50%, -50%) scale(1.05); opacity: 0.8; }
+        }
+
+        /* --- KAW VỰC HUD (Webcam Mini) --- */
+        #hud-wrapper {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .cam-box {
+            position: relative;
+            width: 180px; /* Lớn hơn chút */
+            height: 135px;
+            border: 2px solid var(--neon-blue);
+            background: #000;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 255, 251, 0.5);
+            transform: scaleX(-1); /* Lật ngược gương giống soi gương */
+            margin-top: 10px;
+        }
+
+        .input_video, .output_canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+
+        /* Hướng dẫn sử dụng */
+        .guide-box {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--accent-purple);
+            color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 13px;
+            width: 250px;
+            text-align: right;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+        }
+
+        .guide-box b {
+            color: var(--neon-blue);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Chỉ hiển thị trên mobile */
+        @media (max-width: 600px) {
+            .cam-box {
+                width: 120px;
+                height: 160px; /* Camera dọc cho điện thoại */
+            }
+            .guide-box {
+                width: 180px;
+                font-size: 11px;
+            }
+            #hud-wrapper {
+                bottom: 10px;
+                right: 10px;
+            }
+            #loading {
+                font-size: 16px;
+                padding: 15px 25px;
             }
         }
     </style>
 </head>
+
 <body>
-    <!-- Phần tử Canvas để vẽ hiệu ứng -->
-    <canvas id="matrixCanvas"></canvas>
-    
-    <!-- Đoạn văn bản bất ngờ -->
-    <div id="surprise-text">
-        Bất ngờ chưa? Chào mừng đến với Matrix.
+
+    <div id="loading">
+        🚀 Initiating Cyber Core System...<br>
+        <small>Vui lòng chờ & Cho phép Camera</small>
     </div>
 
+    <div id="canvas-container">
+        <!-- Canvas cho hiệu ứng hạt nền (particles) -->
+        <canvas id="canvas1"></canvas>
+        <!-- Canvas cho vật thể 3D chính -->
+        <canvas id="canvas3d"></canvas>
+    </div>
+    
+    <div id="hud-wrapper">
+        <div class="guide-box">
+            <div>🖐 <b>MỞ TAY:</b> Phóng to Core</div>
+            <div>✊ <b>NẮM TAY:</b> Thu nhỏ Core</div>
+            <div>👋 <b>DI CHUYỂN:</b> Xoay Camera</div>
+            <div style="margin-top:8px; color:var(--accent-purple); font-style:italic; border-top: 1px dashed;">[ Input Feed ]</div>
+        </div>
+
+        <div class="cam-box">
+            <video class="input_video" playsinline webkit-playsinline muted autoplay></video>
+            <canvas class="output_canvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Thư viện Three.js và MediaPipe -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <!-- Thư viện Three.js post-processing cho hiệu ứng hào quang -->
+    <script src="unpkg.com"></script>
+    <script src="unpkg.com"></script>
+    <script src="unpkg.com"></script>
+    <script src="unpkg.com"></script>
+    <script src="unpkg.com"></script>
+
+
     <script>
-        // JavaScript để tạo hiệu ứng mưa ký tự
-        const canvas = document.getElementById('matrixCanvas');
-        const ctx = canvas.getContext('2d');
+        // --- 1. SETUP THREE.JS (ĐỒ HỌA ĐỒ SỘ) ---
+        const container = document.getElementById('canvas-container');
+        const canvas3d = document.getElementById('canvas3d');
 
-        // Đặt kích thước canvas bằng kích thước cửa sổ trình duyệt
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        let scene, camera, renderer, coreGroup, innerCore, outerShell, ringSystem, stars, composer;
 
-        // Bảng ký tự (bao gồm các ký tự tiếng Việt có dấu)
-        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789' +
-                         'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + 
-                         'aáàảãạăắằẳẵặâấầẩẫậeéèẻẽẹêếềểễệiíìỉĩịoóòỏõọôốồổỗộơớờởỡợuúùủũụưứừửữựyýỳỷỹỵ';
-        
-        const fontSize = 16;
-        const columns = canvas.width / fontSize;
+        function init3D() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.001); // Sương mù dày hơn cho cảm giác sâu
 
-        // Mảng để theo dõi vị trí y của mỗi cột
-        const drops = [];
-        for (let i = 0; i < columns; i++) {
-            drops[i] = 1;
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 3000);
+            camera.position.z = 15; // Camera lùi xa hơn để thấy sự "đồ sộ"
+
+            renderer = new THREE.WebGLRenderer({ canvas: canvas3d, antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setClearColor(0x000000, 0); // Clear color transparent if needed
+
+            // Ánh sáng kịch tính
+            const ambientLight = new THREE.AmbientLight(0x444444);
+            scene.add(ambientLight);
+
+            const pointLight1 = new THREE.PointLight(0x00fffb, 5, 200);
+            pointLight1.position.set(10, 10, 10);
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0xff00ff, 5, 200);
+            pointLight2.position.set(-10, -10, 10);
+            scene.add(pointLight2);
+
+            const coreLight = new THREE.PointLight(0xffffff, 3, 80);
+            coreLight.position.set(0, 0, 0);
+            scene.add(coreLight);
+
+            // VẬT THỂ: "CYBER CORE"
+            coreGroup = new THREE.Group();
+            scene.add(coreGroup);
+
+            // 1. Lõi Năng Lượng Chính (Sun/Star)
+            const coreGeo = new THREE.IcosahedronGeometry(1.5, 4); // To hơn, mượt hơn
+            const coreMat = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending
+            });
+            innerCore = new THREE.Mesh(coreGeo, coreMat);
+            coreGroup.add(innerCore);
+
+            // 2. Vỏ Giáp Cơ Khí (Tech Shell)
+            const shellGeo = new THREE.IcosahedronGeometry(3.0, 1);
+            const shellMat = new THREE.MeshPhongMaterial({
+                color: 0x000000,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.6,
+                emissive: 0x00fffb,
+                emissiveIntensity: 0.3,
+                side: THREE.DoubleSide,
+                shininess: 100
+            });
+            outerShell = new THREE.Mesh(shellGeo, shellMat);
+            coreGroup.add(outerShell);
+
+            // 3. Hệ Thống Vòng Xoay (Massive Rings System)
+            const ringGeo = new THREE.TorusGeometry(5, 0.05, 2, 100);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0xff00ff, side: THREE.DoubleSide });
+            
+            const ring1 = new THREE.Mesh(ringGeo, ringMat);
+            ring1.rotation.x = Math.PI / 2;
+            coreGroup.add(ring1);
+
+            const ring2 = new THREE.Mesh(ringGeo, ringMat);
+            ring2.rotation.y = Math.PI / 2;
+            coreGroup.add(ring2);
+
+            const ring3 = new THREE.Mesh(ringGeo, ringMat);
+            ring3.rotation.z = Math.PI / 2;
+            coreGroup.add(ring3);
+
+            // Thêm hiệu ứng phát sáng (Bloom Effect)
+            const renderScene = new THREE.RenderPass(scene, camera);
+            const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+            bloomPass.threshold = 0.1;
+            bloomPass.strength = 1.2; // Độ mạnh của ánh sáng hào quang
+            bloomPass.radius = 0.5;
+
+            composer = new THREE.EffectComposer(renderer);
+            composer.addPass(renderScene);
+            composer.addPass(bloomPass);
+
+            // Xử lý thay đổi kích thước cửa sổ
+            window.addEventListener('resize', onWindowResize, false);
         }
 
-        // Hàm vẽ hiệu ứng
-        function draw() {
-            // Hiệu ứng mờ dần (tail effect)
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
 
-            ctx.fillStyle = '#0F0'; // Màu chữ
-            ctx.font = fontSize + 'px monospace';
+        // --- 2. HIỆU ỨNG HẠT NỀN (Tạo chiều sâu vũ trụ) ---
+        function initParticles() {
+            const canvas = document.getElementById('canvas1');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            const particleCount = 500;
 
-            for (let i = 0; i < drops.length; i++) {
-                // Chọn một ký tự ngẫu nhiên từ bảng ký tự
-                const text = katakana.charAt(Math.floor(Math.random() * katakana.length));
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.z = Math.random() * 5; // Độ sâu
+                    this.size = Math.random() * 1 + 0.5;
+                    this.speedX = (Math.random() - 0.5) * 0.1;
+                    this.speedY = (Math.random() - 0.5) * 0.1;
+                }
+                update() {
+                    this.x += this.speedX * this.z;
+                    this.y += this.speedY * this.z;
+                    if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                        this.x = Math.random() * canvas.width;
+                        this.y = Math.random() * canvas.height;
+                    }
+                }
+                draw() {
+                    ctx.fillStyle = `rgba(0, 255, 251, ${this.z/5})`; // Neon blue glow
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * this.z, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            function init() {
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
+            }
+
+            function animateParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let i = 0; i < particles.length; i++) {
+                    particles[i].update();
+                    particles[i].draw();
+                }
+                requestAnimationFrame(animateParticles);
+            }
+
+            init();
+            animateParticles();
+        }
+
+        // --- 3. LOGIC MEDIA PIPE VÀ KẾT NỐI VỚI THREE.JS ---
+
+        const video = document.querySelector('.input_video');
+        const canvasElement = document.querySelector('.output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const loadingScreen = document.getElementById('loading');
+        
+        let targetScale = 1;
+        let currentScale = 1;
+        let targetRotationY = 0;
+        let targetRotationX = 0;
+
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+
+            // Chuyển động tự quay nhẹ nhàng
+            coreGroup.rotation.y += 0.002;
+            innerCore.rotation.x += 0.005;
+
+            // Vòng xoay nhanh hơn
+            coreGroup.children[2].rotation.y += 0.01; // Ring 1
+            coreGroup.children[3].rotation.z += 0.015; // Ring 2
+            coreGroup.children[4].rotation.x += 0.012; // Ring 3
+
+
+            // Làm mịn chuyển động scale
+            currentScale += (targetScale - currentScale) * 0.05;
+            coreGroup.scale.set(currentScale, currentScale, currentScale);
+
+            // Làm mịn chuyển động xoay theo tay
+            // Giới hạn góc xoay để không bị lộn ngược
+            coreGroup.rotation.y += (targetRotationY - coreGroup.rotation.y) * 0.05;
+            coreGroup.rotation.x += (targetRotationX - coreGroup.rotation.x) * 0.05;
+
+            // Sử dụng composer để render với hiệu ứng bloom
+            composer.render();
+        }
+
+        function onResults(results) {
+            loadingScreen.style.display = 'none';
+
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            if (results.multiHandLandmarks && results.multiHandedness.length > 0) {
                 
-                // Vẽ ký tự tại vị trí (x, y)
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                const hand = results.multiHandLandmarks[0];
+                
+                // 1. Logic Scale (Phóng to/Thu nhỏ) dựa trên cử chỉ tay
+                const thumbTip = hand[4];
+                const indexTip = hand[8];
+                const distance = Math.sqrt(Math.pow(thumbTip.x - indexTip.x, 2) + Math.pow(thumbTip.y - indexTip.y, 2));
 
-                // Gửi giọt nước (ký tự) về đầu nếu nó rơi xuống đáy hoặc ngẫu nhiên
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                    drops[i] = 0;
+                // Khoảng cách normalized (0.0 -> 0.5)
+                if (distance > 0.1) {
+                    targetScale = THREE.MathUtils.clamp(distance * 15, 0.8, 3.0); // Tăng dải scale
+                } else {
+                    // Nếu tay nắm quá chặt (cử chỉ nắm tay), thu nhỏ về mặc định
+                    targetScale = 1.0; 
                 }
 
-                // Tăng vị trí y để giọt nước tiếp tục rơi xuống
-                drops[i]++;
+                // 2. Logic Rotation (Xoay) dựa trên vị trí tay trên màn hình
+                const wrist = hand[0];
+                // Map vị trí X của tay (0 đến 1) sang góc quay Y (-PI/4 đến PI/4)
+                targetRotationY = THREE.MathUtils.mapLinear(wrist.x, 0, 1, Math.PI / 4, -Math.PI / 4);
+                // Map vị trí Y của tay (0 đến 1) sang góc quay X (-PI/6 đến PI/6)
+                targetRotationX = THREE.MathUtils.mapLinear(wrist.y, 0, 1, -Math.PI / 6, Math.PI / 6);
+
+
+                // Vẽ các điểm xương tay lên canvas mini-cam
+                drawConnectors(canvasCtx, hand, HAND_CONNECTIONS,
+                               {color: '#00ffff', lineWidth: 2});
+                drawLandmarks(canvasCtx, hand, {color: '#ff00ff', lineWidth: 1, radius: 3});
             }
+            canvasCtx.restore();
         }
 
-        // Lặp lại hàm draw mỗi 33ms (khoảng 30fps)
-        setInterval(draw, 33);
-
-        // Xử lý thay đổi kích thước màn hình
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            columns = canvas.width / fontSize;
-            drops.length = columns;
-            for (let i = 0; i < columns; i++) {
-                drops[i] = 1;
-            }
+        const hands = new Hands({locateFile: (file) => {
+            return `cdn.jsdelivr.net{file}`;
+        }});
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
         });
+        hands.onResults(onResults);
+
+        const cameraFeed = new Camera(video, {
+            onFrame: async () => {
+                await hands.send({image: video});
+            },
+            width: 1280,
+            height: 720
+        });
+        
+        // Khởi động các hệ thống
+        init3D();
+        initParticles();
+        animate3D();
+        cameraFeed.start();
 
     </script>
+
 </body>
+
 </html>

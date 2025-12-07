@@ -2,223 +2,497 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang HTML Kỳ Diệu - Chuẩn Bị Bị Ngạc Nhiên!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>3D Hand Control by Gemini - Hyper Core Edition</title>
     <style>
         body {
             margin: 0;
-            padding: 0;
             overflow: hidden;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
-            font-family: 'Arial', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: white;
+            background-color: #000;
+            font-family: 'Outfit', sans-serif;
         }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .container {
-            text-align: center;
-            position: relative;
-            z-index: 10;
-        }
-
-        h1 {
-            font-size: 3em;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .surprise-btn {
-            padding: 15px 30px;
-            font-size: 1.5em;
-            background: rgba(255,255,255,0.2);
-            border: 2px solid white;
-            color: white;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .surprise-btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-
-        /* Hiệu ứng sao rơi */
-        .stars {
-            position: fixed;
+        /* Container cho 3D */
+        #canvas-container {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
             z-index: 1;
         }
-
-        .star {
+        #canvas3d {
             position: absolute;
-            width: 2px;
-            height: 2px;
-            background: white;
-            border-radius: 50%;
-            animation: fall linear infinite;
-        }
-
-        @keyframes fall {
-            0% {
-                transform: translateY(-100vh) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh) rotate(360deg);
-                opacity: 0;
-            }
-        }
-
-        /* Hiệu ứng bất ngờ: Màn hình lật 3D */
-        .flipper {
-            perspective: 1000px;
-            position: relative;
-            width: 300px;
-            height: 200px;
-            margin: 20px auto;
-        }
-
-        .flip-card {
-            position: relative;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
+            z-index: 5;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+        /* Màn hình chờ */
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00ffcc;
+            font-size: 20px;
+            font-weight: 700;
+            z-index: 20;
+            pointer-events: none;
             text-align: center;
-            transition: transform 0.8s;
-            transform-style: preserve-3d;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.5);
+            animation: pulse 2s infinite;
         }
-
-        .flip-card.flipped {
-            transform: rotateY(180deg);
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
         }
-
-        .front, .back {
+        /* --- KHU VỰC HUD (Webcam Mini) --- */
+        #hud-wrapper {
             position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            pointer-events: none;
+        }
+        .cam-box {
+            position: relative;
+            width: 160px;
+            height: 120px;
+            border: 2px solid #00ffcc;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.4);
+            transform: scaleX(-1);
+        }
+        /* Video gốc và Canvas vẽ xương tay */
+        .input_video {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            backface-visibility: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            object-fit: cover;
         }
-
-        .front {
-            background: rgba(255,255,255,0.1);
-            font-size: 1.2em;
+        .output_canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
-
-        .back {
-            background: rgba(0,0,0,0.8);
-            transform: rotateY(180deg);
-            font-size: 1.5em;
-            color: #ffeb3b;
+        /* Hướng dẫn sử dụng */
+        .guide-box {
+            margin-bottom: 10px;
+            background: rgba(0, 20, 40, 0.9);
+            border: 1px solid rgba(0, 255, 204, 0.6);
+            color: #fff;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            width: 200px;
+            text-align: right;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
         }
-
-        /* Ẩn flipper ban đầu */
-        .flipper {
-            opacity: 0;
-            transition: opacity 0.5s;
+        .guide-box b {
+            color: #00ffcc;
         }
-
-        .flipper.show {
-            opacity: 1;
+        /* Chỉ hiển thị trên mobile */
+        @media (max-width: 600px) {
+            .cam-box {
+                width: 120px;
+                height: 160px;
+            }
+            .guide-box {
+                width: 150px;
+                font-size: 11px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="stars" id="stars"></div>
-    <div class="container">
-        <h1>🌟 Chào Mừng Đến Với Sự Kỳ Diệu! 🌟</h1>
-        <p>Bạn sẵn sàng bị ngạc nhiên chưa? Nhấn nút dưới đây để khám phá!</p>
-        <button class="surprise-btn" onclick="surprise()">KHÁM PHÁ NGAY!</button>
-        <div class="flipper" id="flipper">
-            <div class="flip-card" id="card">
-                <div class="front">
-                    <p>Đây là mặt trước... Nhưng có gì đó đằng sau?</p>
-                </div>
-                <div class="back">
-                    <p>🎉 BÍ MẬT: Bạn là người tuyệt vời nhất! Cảm ơn vì đã ghé thăm! 😍</p>
-                </div>
-            </div>
+    <div id="loading">
+        🚀 Khởi động Hyper Core...<br>
+        <small>Vui lòng chờ & Cho phép Camera</small>
+    </div>
+    <div id="canvas-container">
+        <canvas id="canvas1"></canvas>
+        <canvas id="canvas3d"></canvas>
+    </div>
+    <div id="hud-wrapper">
+        <div class="guide-box">
+            <div>🖐 <b>Mở tay:</b> Phóng to Hyper Core</div>
+            <div>✊ <b>Nắm tay:</b> Thu nhỏ Hyper Core</div>
+            <div>👋 <b>Di chuyển:</b> Xoay vũ trụ</div>
+            <div style="margin-top:5px; color:#aaa; font-style:italic;">(Đặt tay vào khung bên dưới)</div>
+        </div>
+        <div class="cam-box">
+            <video class="input_video" playsinline webkit-playsinline muted autoplay></video>
+            <canvas class="output_canvas"></canvas>
         </div>
     </div>
-
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <script>
-        // Tạo sao rơi
-        function createStars() {
-            const starsContainer = document.getElementById('stars');
-            for (let i = 0; i < 100; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                star.style.animationDelay = Math.random() * 5 + 's';
-                starsContainer.appendChild(star);
+        // --- 1. SETUP THREE.JS (ĐỒ HỌA HYPER CORE - ĐỒ SỘ HÙNG VĨ) ---
+        const container = document.getElementById('canvas-container');
+        const canvas3d = document.getElementById('canvas3d');
+        
+        // Define global variables for Three.js objects
+        let scene, camera, renderer, group, outerMesh, innerMesh, stars, energyParticles, nebulaCloud;
+        
+        function init3D() {
+            scene = new THREE.Scene();
+            // Enhanced fog for epic depth
+            scene.fog = new THREE.FogExp2(0x000011, 0.0005); // Sương mù vũ trụ sâu hơn
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000);
+            camera.position.z = 25; // Camera lùi xa hơn để fit vật thể đồ sộ
+            
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: canvas3d, 
+                antialias: true, 
+                alpha: true 
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            
+            // Lighting - Hùng vĩ với nhiều nguồn sáng động
+            const ambientLight = new THREE.AmbientLight(0x001122, 0.3); // Ánh sáng môi trường vũ trụ
+            scene.add(ambientLight);
+            
+            const pointLight1 = new THREE.PointLight(0x00f2ff, 3, 200); // Cyan mạnh mẽ
+            pointLight1.position.set(20, 20, 20);
+            pointLight1.castShadow = true;
+            scene.add(pointLight1);
+            
+            const pointLight2 = new THREE.PointLight(0xbd00ff, 3, 200); // Magenta huyền bí
+            pointLight2.position.set(-20, -20, 20);
+            pointLight2.castShadow = true;
+            scene.add(pointLight2);
+            
+            const coreLight = new THREE.PointLight(0xffffff, 2, 100); // Lõi trắng rực rỡ
+            coreLight.position.set(0, 0, 0);
+            scene.add(coreLight);
+            
+            // Thêm spotlight cho drama
+            const spotLight = new THREE.SpotLight(0x00ffcc, 2, 100, Math.PI / 6, 0.5);
+            spotLight.position.set(0, 10, 10);
+            spotLight.target.position.set(0, 0, 0);
+            scene.add(spotLight);
+            scene.add(spotLight.target);
+            
+            // VẬT THỂ CHÍNH: HYPER CORE (ĐỒ SỘ HÙNG VĨ)
+            group = new THREE.Group();
+            scene.add(group);
+            
+            // 1. Lõi Năng Lượng Nội Tại (Pulsing Star Core) - Lớn hơn, phát sáng mạnh
+            const coreGeo = new THREE.IcosahedronGeometry(3.0, 3); // Tăng kích thước và chi tiết
+            const coreMat = new THREE.MeshStandardMaterial({ 
+                color: 0xffffff, 
+                emissive: 0x0044aa, 
+                emissiveIntensity: 0.5,
+                metalness: 0.8,
+                roughness: 0.2,
+                transparent: true, 
+                opacity: 0.9 
+            });
+            innerMesh = new THREE.Mesh(coreGeo, coreMat);
+            innerMesh.castShadow = true;
+            innerMesh.receiveShadow = true;
+            group.add(innerMesh);
+            
+            // Lớp Glow Nội Tại - Hiệu ứng plasma
+            const glowGeo = new THREE.SphereGeometry(4.5, 32, 32);
+            const glowMat = new THREE.MeshBasicMaterial({ 
+                color: 0x00f2ff, 
+                transparent: true, 
+                opacity: 0.2, 
+                blending: THREE.AdditiveBlending 
+            });
+            const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+            group.add(glowMesh);
+            
+            // 2. Vỏ Giáp Siêu Cấp (Epic Tech Shell) - Lớn hơn, với wireframe overlay
+            const shellGeo = new THREE.IcosahedronGeometry(8.0, 2); // Tăng kích thước đồ sộ
+            const shellMat = new THREE.MeshPhongMaterial({ 
+                color: 0x111111, 
+                shininess: 100,
+                transparent: true, 
+                opacity: 0.7, 
+                emissive: 0x00f2ff, 
+                emissiveIntensity: 0.3,
+                side: THREE.DoubleSide 
+            });
+            outerMesh = new THREE.Mesh(shellGeo, shellMat);
+            outerMesh.castShadow = true;
+            group.add(outerMesh);
+            
+            // Wireframe overlay cho shell
+            const wireframeGeo = new THREE.IcosahedronGeometry(8.0, 2);
+            const wireframeMat = new THREE.MeshBasicMaterial({ 
+                color: 0xbd00ff, 
+                wireframe: true, 
+                transparent: true, 
+                opacity: 0.4 
+            });
+            const wireframeMesh = new THREE.Mesh(wireframeGeo, wireframeMat);
+            group.add(wireframeMesh);
+            
+            // 3. Hệ Thống Vòng Quỹ Đạo Đa Tầng (Orbital Rings) - Nhiều hơn, lớn hơn
+            const ringCount = 8; // Tăng số vòng
+            for (let i = 0; i < ringCount; i++) {
+                const radius = 12 + i * 2.5; // Bán kính lớn hơn
+                const tube = 0.1 + i * 0.05;
+                const ringGeo = new THREE.TorusGeometry(radius, tube, 16, 100); // Ít segment hơn cho perf
+                const ringMat = new THREE.MeshPhongMaterial({ 
+                    color: i % 3 === 0 ? 0x00f2ff : (i % 3 === 1 ? 0xbd00ff : 0xffffff), 
+                    emissive: i % 3 === 0 ? 0x002244 : (i % 3 === 1 ? 0x440022 : 0x222244),
+                    transparent: true, 
+                    opacity: 0.7,
+                    shininess: 100
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.rotation.x = Math.random() * Math.PI * 2;
+                ring.rotation.y = Math.random() * Math.PI * 2;
+                ring.userData = { 
+                    rotSpeedX: (Math.random() - 0.5) * 0.01, 
+                    rotSpeedY: (Math.random() - 0.5) * 0.01, 
+                    rotSpeedZ: (Math.random() - 0.5) * 0.01 
+                };
+                group.add(ring);
+            }
+            
+            // 4. Hệ Thống Năng Lượng (Energy Particles) - Hiệu ứng bắn ra từ lõi
+            const particleCount = 2000;
+            const particleGeo = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const velocities = new Float32Array(particleCount * 3);
+            for (let i = 0; i < particleCount; i++) {
+                const i3 = i * 3;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+                const r = 5 + Math.random() * 10;
+                positions[i3] = r * Math.sin(phi) * Math.cos(theta);
+                positions[i3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+                positions[i3 + 2] = r * Math.cos(phi);
+                
+                velocities[i3] = (Math.random() - 0.5) * 0.05;
+                velocities[i3 + 1] = (Math.random() - 0.5) * 0.05;
+                velocities[i3 + 2] = (Math.random() - 0.5) * 0.05;
+            }
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            energyParticles = new THREE.Points(particleGeo, new THREE.PointsMaterial({ 
+                color: 0x00ffcc, 
+                size: 0.1, 
+                transparent: true, 
+                opacity: 0.8, 
+                blending: THREE.AdditiveBlending 
+            }));
+            energyParticles.userData = { velocities };
+            group.add(energyParticles);
+            
+            // 5. Đám Mây Tinh Vân (Nebula Cloud) - Cho cảm giác vũ trụ hùng vĩ
+            const nebulaGeo = new THREE.SphereGeometry(50, 32, 32);
+            const nebulaMat = new THREE.MeshBasicMaterial({ 
+                color: 0x220033, 
+                transparent: true, 
+                opacity: 0.3, 
+                side: THREE.BackSide,
+                blending: THREE.AdditiveBlending 
+            });
+            nebulaCloud = new THREE.Mesh(nebulaGeo, nebulaMat);
+            scene.add(nebulaCloud);
+            
+            // 6. Trường Sao Mở Rộng Siêu Lớn (Epic Starfield)
+            const starGeo = new THREE.BufferGeometry();
+            const starCount = 8000; // Nhiều sao hơn
+            const starPos = new Float32Array(starCount * 3);
+            for (let i = 0; i < starCount * 3; i += 3) {
+                const r = Math.random() * 1000 + 200; // Phạm vi khổng lồ
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+                starPos[i] = r * Math.sin(phi) * Math.cos(theta);
+                starPos[i + 1] = r * Math.sin(phi) * Math.sin(theta);
+                starPos[i + 2] = r * Math.cos(phi);
+            }
+            starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+            stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ 
+                color: 0xffffff, 
+                size: 0.5, 
+                transparent: true, 
+                opacity: 0.6, 
+                blending: THREE.AdditiveBlending 
+            }));
+            scene.add(stars);
+        }
+        
+        init3D();
+        
+        // --- 2. SETUP MEDIAPIPE (AI CAMERA) --- 
+        const videoElement = document.querySelector('.input_video');
+        const canvasElement = document.querySelector('.output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const loadingDiv = document.getElementById('loading');
+        
+        function onResults(results) {
+            loadingDiv.style.display = 'none';
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00ffcc', lineWidth: 2 });
+                drawLandmarks(canvasCtx, landmarks, { color: '#ff00cc', lineWidth: 1, radius: 2 });
+                
+                // LOGIC ĐIỀU KHIỂN
+                const wrist = landmarks[0];
+                const middleTip = landmarks[12];
+                const distance = Math.sqrt(Math.pow(middleTip.x - wrist.x, 2) + Math.pow(middleTip.y - wrist.y, 2));
+                let openness = (distance - 0.1) * 5;
+                if (openness < 0.5) openness = 0.5; // Min scale lớn hơn
+                if (openness > 3.0) openness = 3.0; // Max scale lớn hơn
+                targetScale = openness;
+                
+                const palmX = landmarks[9].x;
+                const palmY = landmarks[9].y;
+                const sensitivity = 3; // Nhạy hơn
+                targetRotY += (palmX - lastX) * -sensitivity;
+                targetRotX += (palmY - lastY) * sensitivity;
+                lastX = palmX;
+                lastY = palmY;
+            } else {
+                targetScale = 1.5; // Default scale lớn hơn
+                targetRotY += 0.001;
+            }
+            canvasCtx.restore();
+        }
+        
+        const hands = new Hands({ 
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` 
+        });
+        hands.setOptions({ 
+            maxNumHands: 1, 
+            modelComplexity: 0, 
+            minDetectionConfidence: 0.5, 
+            minTrackingConfidence: 0.5 
+        });
+        hands.onResults(onResults);
+        
+        const cameraUtils = new Camera(videoElement, { 
+            onFrame: async () => { await hands.send({ image: videoElement }); }, 
+            width: 480, 
+            height: 640 
+        });
+        cameraUtils.start().catch(err => { 
+            loadingDiv.innerHTML = "❌ Lỗi Camera: " + err + "<br>Hãy thử mở bằng Safari và chọn HTTPS."; 
+        });
+        
+        // Biến điều khiển
+        let targetScale = 1.5;
+        let currentScale = 1.5;
+        let targetRotX = 0, targetRotY = 0;
+        let lastX = 0.5, lastY = 0.5;
+        let animationId;
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Lerp mượt mà hơn
+            currentScale += (targetScale - currentScale) * 0.08;
+            if (group) {
+                group.scale.set(currentScale, currentScale, currentScale);
+                group.rotation.y += (targetRotY - group.rotation.y) * 0.08;
+                group.rotation.x += (targetRotX - group.rotation.x) * 0.08;
+            }
+            
+            // Hiệu ứng sống động cho lõi
+            if (innerMesh) {
+                innerMesh.rotation.x += 0.015;
+                innerMesh.rotation.y += 0.01;
+                innerMesh.scale.setScalar(1 + Math.sin(Date.now() * 0.001) * 0.1); // Pulsing
+            }
+            
+            if (outerMesh) {
+                outerMesh.rotation.z -= 0.008;
+                outerMesh.rotation.y -= 0.003;
+            }
+            
+            // Animate rings
+            if (group) {
+                group.children.forEach(child => {
+                    if (child.userData && child.userData.rotSpeedX) {
+                        child.rotation.x += child.userData.rotSpeedX;
+                        child.rotation.y += child.userData.rotSpeedY;
+                        child.rotation.z += child.userData.rotSpeedZ;
+                    }
+                });
+            }
+            
+            // Animate energy particles
+            if (energyParticles && energyParticles.userData.velocities) {
+                const positions = energyParticles.geometry.attributes.position.array;
+                const velocities = energyParticles.userData.velocities;
+                for (let i = 0; i < positions.length; i += 3) {
+                    positions[i] += velocities[i];
+                    positions[i + 1] += velocities[i + 1];
+                    positions[i + 2] += velocities[i + 2];
+                    
+                    // Reset nếu bay quá xa
+                    const dist = Math.sqrt(positions[i]**2 + positions[i+1]**2 + positions[i+2]**2);
+                    if (dist > 20) {
+                        const theta = Math.random() * Math.PI * 2;
+                        const phi = Math.random() * Math.PI;
+                        const r = 5;
+                        positions[i] = r * Math.sin(phi) * Math.cos(theta);
+                        positions[i + 1] = r * Math.sin(phi) * Math.sin(theta);
+                        positions[i + 2] = r * Math.cos(phi);
+                    }
+                }
+                energyParticles.geometry.attributes.position.needsUpdate = true;
+            }
+            
+            // Nebula rotation chậm
+            if (nebulaCloud) {
+                nebulaCloud.rotation.y += 0.0005;
+            }
+            
+            // Stars subtle rotation
+            if (stars) {
+                stars.rotation.y = group.rotation.y * 0.1;
+            }
+            
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
             }
         }
-
-        // Hiệu ứng bất ngờ
-        function surprise() {
-            const card = document.getElementById('card');
-            const flipper = document.getElementById('flipper');
-            
-            // Hiển thị flipper
-            flipper.classList.add('show');
-            
-            // Lật card
-            setTimeout(() => {
-                card.classList.add('flipped');
-            }, 500);
-            
-            // Thêm confetti đơn giản (sử dụng emoji)
-            for (let i = 0; i < 50; i++) {
-                setTimeout(() => {
-                    const confetti = document.createElement('div');
-                    confetti.innerHTML = '🎊';
-                    confetti.style.position = 'fixed';
-                    confetti.style.left = Math.random() * 100 + 'vw';
-                    confetti.style.top = '-10px';
-                    confetti.style.fontSize = '20px';
-                    confetti.style.pointerEvents = 'none';
-                    confetti.style.zIndex = '100';
-                    confetti.style.animation = 'fall 2s linear forwards';
-                    document.body.appendChild(confetti);
-                    setTimeout(() => confetti.remove(), 2000);
-                }, i * 50);
-            }
-            
-            // Thay đổi tiêu đề
-            document.querySelector('h1').innerHTML = '🤯 BỊ NGẠC NHIÊN CHƯA? 🤯';
-        }
-
-        // Khởi tạo sao rơi khi load trang
-        window.onload = createStars;
+        
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        animate();
     </script>
 </body>
 </html>

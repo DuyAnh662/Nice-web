@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🌌 HYPER CORE NEXUS - 3D Hand Control</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: radial-gradient(ellipse at center, #0a0a1f 0%, #000000 70%);
+            font-family: 'Orbitron', monospace;
+            cursor: none;
+        }
+
+        /* Cursor Effect */
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #00f2ff, transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            mix-blend-mode: screen;
+            transition: transform 0.1s ease;
+        }
+
+        /* Main Canvas Container */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        #canvas3d {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            mix-blend-mode: screen;
+        }
+
+        /* Loading Screen - Epic */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #000428 0%, #004e92 50%, #000428 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: #00f2ff;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .loading-title {
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 900;
+            text-shadow: 0 0 30px #00f2ff;
+            margin-bottom: 2rem;
+            letter-spacing: 0.1em;
+        }
+
+        .loading-subtitle {
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            opacity: 0.8;
+            animation: fadeInOut 3s infinite;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.9; }
+        }
+
+        /* HUD - Futuristic Design */
+        #hud-wrapper {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            pointer-events: none;
+        }
+
+        .hud-panel {
+            background: linear-gradient(145deg, rgba(10,10,47,0.9), rgba(0,78,146,0.7));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0,242,255,0.3);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 
+                0 0 50px rgba(0,242,255,0.2),
+                inset 0 0 20px rgba(0,242,255,0.1);
+            pointer-events: auto;
+            transition: all 0.3s ease;
+        }
+
+        .hud-panel:hover {
+            box-shadow: 
+                0 0 80px rgba(0,242,255,0.4),
+                inset 0 0 30px rgba(0,242,255,0.2);
+            transform: translateY(-5px);
+        }
+
+        .hud-title {
+            color: #00f2ff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-align: center;
+            text-shadow: 0 0 10px #00f2ff;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            color: #e0e0ff;
+            font-size: 0.95rem;
+        }
+
+        .emoji {
+            font-size: 1.5rem;
+            filter: drop-shadow(0 0 5px #bd00ff);
+        }
+
+        /* Camera Box - Holographic */
+        .cam-container {
+            position: relative;
+            width: 220px;
+            height: 165px;
+            border-radius: 25px;
+            overflow: hidden;
+            background: radial-gradient(circle, rgba(0,242,255,0.1), transparent);
+            box-shadow: 
+                0 0 40px rgba(0,242,255,0.3),
+                inset 0 0 30px rgba(255,255,255,0.05);
+            border: 2px solid rgba(0,242,255,0.5);
+        }
+
+        .input_video, .output_canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        /* Status Indicators */
+        .status-bar {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(15px);
+            padding: 15px 30px;
+            border-radius: 50px;
+            border: 1px solid rgba(0,242,255,0.3);
+            color: #00f2ff;
+            font-family: 'Exo 2', sans-serif;
+            font-weight: 600;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            #hud-wrapper {
+                top: 20px;
+                right: 20px;
+                left: 20px;
+                flex-direction: row;
+                justify-content: space-between;
+            }
+            
+            .cam-container {
+                width: 180px;
+                height: 240px;
+            }
+            
+            .status-bar {
+                bottom: 20px;
+                padding: 12px 25px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Custom Cursor -->
+    <div class="custom-cursor" id="cursor"></div>
+
+    <!-- Epic Loading Screen -->
+    <div id="loading">
+        <div class="loading-title">🌌 HYPER CORE NEXUS</div>
+        <div class="loading-subtitle">Initializing Quantum Hand Control System...</div>
+        <div style="margin-top: 30px; font-size: 0.9rem; opacity: 0.6;">
+            Allow Camera Access • Powered by Gemini AI
+        </div>
+    </div>
+
+    <!-- 3D Canvas -->
+    <div id="canvas-container">
+        <canvas id="canvas1"></canvas>
+        <canvas id="canvas3d"></canvas>
+    </div>
+
+    <!-- HUD Interface -->
+    <div id="hud-wrapper">
+        <!-- Controls Panel -->
+        <div class="hud-panel">
+            <div class="hud-title">🎮 CONTROLS</div>
+            <div class="control-item">
+                <span class="emoji">🖐️</span><span><b>Spread Hand:</b> Zoom In</span>
+            </div>
+            <div class="control-item">
+                <span class="emoji">✊</span><span><b>Fist Grip:</b> Zoom Out</span>
+            </div>
+            <div class="control-item">
+                <span class="emoji">👋</span><span><b>Move Hand:</b> Rotate View</span>
+            </div>
+        </div>
+
+        <!-- Holographic Camera -->
+        <div class="cam-container">
+            <video class="input_video" playsinline webkit-playsinline muted autoplay></video>
+            <canvas class="output_canvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar" id="statusBar">
+        🔗 Connected • FPS: 60 • Ready
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <script>
+        // Custom Cursor
+        const cursor = document.getElementById('cursor');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        // Global Variables
+        let scene, camera, renderer, coreGroup, nebulaParticles, energyRings = [];
+        let targetScale = 1, currentScale = 1, targetRotX = 0, targetRotY = 0;
+        let lastX = 0.5, lastY = 0.5;
+        let mouseX = 0, mouseY = 0;
+
+        // Initialize MASSIVE 3D Scene
+        function init3D() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x0a0a1f, 0.0008);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 5000);
+            camera.position.set(0, 0, 25);
+
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: document.getElementById('canvas3d'), 
+                antialias: true, 
+                alpha: true 
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+
+            // COSMIC LIGHTING SYSTEM
+            const ambientLight = new THREE.AmbientLight(0x2a2a5a, 0.3);
+            scene.add(ambientLight);
+
+            // Main Core Light
+            const coreLight = new THREE.PointLight(0xffffff, 3, 100);
+            coreLight.position.set(0, 0, 0);
+            scene.add(coreLight);
+
+            // Orbital Lights
+            const light1 = new THREE.PointLight(0x00f2ff, 2, 150);
+            light1.position.set(30, 20, 10);
+            scene.add(light1);
+
+            const light2 = new THREE.PointLight(0xff00bd, 2, 150);
+            light2.position.set(-30, -20, 10);
+            scene.add(light2);
+
+            const light3 = new THREE.PointLight(0x00ff88, 1.5, 100);
+            light3.position.set(0, 40, 20);
+            scene.add(light3);
+
+            // CENTRAL HYPER CORE (MASSIVE!)
+            coreGroup = new THREE.Group();
+            scene.add(coreGroup);
+
+            // 1. ULTRA CORE - Pulsing Energy
+            const coreGeometry = new THREE.IcosahedronGeometry(2.5, 3);
+            const coreMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0xffffff,
+                metalness: 0.9,
+                roughness: 0.1,
+                emissive: 0x00f2ff,
+                emissiveIntensity: 1.5,
+                transparent: true,
+                opacity: 0.9
+            });
+            const ultraCore = new THREE.Mesh(coreGeometry, coreMaterial);
+            coreGroup.add(ultraCore);
+
+            // 2. PLASMA SHELL
+            const plasmaGeometry = new THREE.SphereGeometry(4.8, 64, 64);
+            const plasmaMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00f2ff,
+                transparent: true,
+                opacity: 0.15,
+                blending: THREE.AdditiveBlending
+            });
+            const plasmaShell = new THREE.Mesh(plasmaGeometry, plasmaMaterial);
+            coreGroup.add(plasmaShell);
+
+            // 3. MECHANISED ARMOUR PLATES
+            for(let i = 0; i < 12; i++) {
+                const plateGeo = new THREE.BoxGeometry(1.5, 1.5, 0.3);
+                const plateMat = new THREE.MeshPhongMaterial({
+                    color: 0x1a1a3f,
+                    metalness: 0.8,
+                    roughness: 0.3,
+                    emissive: 0x003366,
+                    emissiveIntensity: 0.5
+                });
+                const plate = new THREE.Mesh(plateGeo, plateMat);
+                
+                const phi = (i / 12) * Math.PI * 2;
+                plate.position.set(
+                    Math.cos(phi) * 6.5,
+                    Math.sin(phi * 0.7) * 4,
+                    Math.sin(phi) * 2
+                );
+                
+                plate.rotation.set(
+                    Math.random() * 0.5,
+                    Math.random() * 0.5,
+                    Math.random() * 0.5
+                );
+                
+                coreGroup.add(plate);
+            }
+
+            // 4. ENERGY RINGS SYSTEM (7 MASSIVE RINGS)
+            const ringPresets = [
+                { radius: 9, thickness: 0.15, color: 0x00f2ff },
+                { radius: 11, thickness: 0.12, color: 0xff00bd },
+                { radius: 13.5, thickness: 0.1, color: 0x00ff88 },
+                { radius: 16, thickness: 0.08, color: 0xffaa00 },
+                { radius: 18.5, thickness: 0.06, color: 0x00f2ff },
+                { radius: 21, thickness: 0.04, color: 0xff00bd },
+                { radius: 23.5, thickness: 0.03, color: 0x00ff88 }
+            ];
+
+            ringPresets.forEach((preset, index) => {
+                const ringGeo = new THREE.TorusGeometry(preset.radius, preset.thickness, 8, 120);
+                const ringMat = new THREE.MeshBasicMaterial({
+                    color: preset.color,
+                    transparent: true,
+                    opacity: 0.7,
+                    blending: THREE.AdditiveBlending
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                
+                ring.rotation.x = Math.PI / 2 * (index % 2 ? 1 : -1);
+                ring.rotation.z = Math.random() * Math.PI;
+                
+                ring.userData = {
+                    speed: 0.005 + index * 0.002,
+                    tilt: Math.random() * 0.3
+                };
+                
+                energyRings.push(ring);
+                coreGroup.add(ring);
+            });
+
+            // 5. NEBULA STARFIELD (20,000 particles)
+            const nebulaGeo = new THREE.BufferGeometry();
+            const nebulaCount = 20000;
+            const nebulaPos = new Float32Array(nebulaCount * 3);
+            const nebulaColors = new Float32Array(nebulaCount * 3);
+            
+            for(let i = 0; i < nebulaCount; i++) {
+                const i3 = i * 3;
+                nebulaPos[i3] = (Math.random() - 0.5) * 800;
+                nebulaPos[i3 + 1] = (Math.random() - 0.5) * 800;
+                nebulaPos[i3 + 2] = (Math.random() - 0.5) * 800;
+                
+                const color = new THREE.Color();
+                color.setHSL(Math.random() * 0.2 + 0.55, 0.7, 0.3 + Math.random() * 0.4);
+                nebulaColors[i3] = color.r;
+                nebulaColors[i3 + 1] = color.g;
+                nebulaColors[i3 + 2] = color.b;
+            }
+            
+            nebulaGeo.setAttribute('position', new THREE.BufferAttribute(nebulaPos, 3));
+            nebulaGeo.setAttribute('color', new THREE.BufferAttribute(nebulaColors, 3));
+            
+            nebulaParticles = new THREE.Points(nebulaGeo, new THREE.PointsMaterial({
+                size: 3,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            }));
+            scene.add(nebulaParticles);
+
+            // Particle Flow Effect
+            createParticleFlow();
+        }
+
+        function createParticleFlow() {
+            const flowGeo = new THREE.BufferGeometry();
+            const flowCount = 500;
+            const flowPos = new Float32Array(flowCount * 3);
+            
+            for(let i = 0; i < flowCount; i++) {
+                const i3 = i * 3;
+                const radius = 8 + Math.random() * 20;
+                const angle = Math.random() * Math.PI * 2;
+                flowPos[i3] = Math.cos(angle) * radius;
+                flowPos[i3 + 1] = (Math.random() - 0.5) * 10;
+                flowPos[i3 + 2] = Math.sin(angle) * radius;
+            }
+            
+            flowGeo.setAttribute('position', new THREE.BufferAttribute(flowPos, 3));
+            const flow = new THREE.Points(flowGeo, new THREE.PointsMaterial({
+                color: 0x00f2ff,
+                size: 0.8,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            }));
+            coreGroup.add(flow);
+        }
+
+        // MediaPipe Hand Tracking
+        const videoElement = document.querySelector('.input_video');
+        const canvasElement = document.querySelector('.output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const loadingDiv = document.getElementById('loading');
+
+        const hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.7
+        });
+
+        function onResults(results) {
+            if (loadingDiv.style.display !== 'none') {
+                loadingDiv.style.display = 'none';
+            }
+
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks[0]) {
+                const landmarks = results.multiHandLandmarks[0];
+                
+                // Enhanced hand drawing
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {
+                    color: '#00f2ff',
+                    lineWidth: 3
+                });
+                drawLandmarks(canvasCtx, landmarks, {
+                    color: '#ff00bd',
+                    lineWidth: 2,
+                    radius: 4
+                });
+
+                // Hand Control Logic
+                const wrist = landmarks[0];
+                const indexTip = landmarks[8];
+                const middleTip = landmarks[12];
+
+                // Pinch detection for zoom
+                const pinchDistance = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
+                targetScale = Math.max(0.5, Math.min(3, 1 + (pinchDistance - 0.05) * 8));
+
+                // Palm tracking for rotation
+                const palmCenter = landmarks[9];
+                targetRotY += (palmCenter.x - lastX) * 3;
+                targetRotX += (palmCenter.y - lastY) * 3;
+                
+                lastX = palmCenter.x;
+                lastY = palmCenter.y;
+
+                document.getElementById('statusBar').textContent = 
+                    `🤲 Hand Detected • Scale: ${(targetScale).toFixed(1)}x • Rotation: ${targetRotY.toFixed(0)}°`;
+            } else {
+                targetScale *= 0.95; // Smooth return to default
+                document.getElementById('statusBar').textContent = '👀 Place hand in frame...';
+            }
+            canvasCtx.restore();
+        }
+
+        const cameraUtils = new Camera(videoElement, {
+            onFrame: async () => await hands.send({ image: videoElement }),
+            width: 640,
+            height: 480
+        });
+
+        cameraUtils.start().catch(err => {
+            loadingDiv.innerHTML = `❌ Camera Error: ${err}<br>Use HTTPS & allow camera access`;
+        });
+
+        hands.onResults(onResults);
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Smooth camera controls
+            currentScale += (targetScale - currentScale) * 0.12;
+            if (coreGroup) {
+                coreGroup.scale.setScalar(currentScale);
+                coreGroup.rotation.y += (targetRotY - coreGroup.rotation.y) * 0.1;
+                coreGroup.rotation.x += (targetRotX - coreGroup.rotation.x) * 0.1;
+            }
+
+            // Core pulsing
+            if (coreGroup) {
+                coreGroup.children[0].scale.setScalar(1 + Math.sin(Date.now() * 0.003) * 0.1);
+                coreGroup.children[1].scale.setScalar(1 + Math.sin(Date.now() * 0.002) * 0.15);
+            }
+
+            // Animate rings
+            energyRings.forEach((ring, index) => {
+                ring.rotation.z += ring.userData.speed;
+                ring.rotation.x += Math.sin(Date.now() * 0.001 + index) * 0.002;
+            });
+
+            // Nebula rotation
+            if (nebulaParticles) {
+                nebulaParticles.rotation.y += 0.0003;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Initialize everything
+        init3D();
+        animate();
+
+        // Responsive resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Mouse interaction
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+    </script>
+</body>
+</html>

@@ -1,261 +1,393 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
+
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Amaze — Web Experience</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Epic Hyper Core — Đồ Sộ & Hùng Vĩ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;700&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#05060a;
-      --glass: rgba(255,255,255,0.06);
-      --accent: #7ef9ff;
-      --accent-2: #9b7eff;
-      --glass-border: rgba(255,255,255,0.08);
+      --accent1: #00f2ff;
+      --accent2: #bd00ff;
+      --bg-dark: #010004;
+      --glass: rgba(255,255,255,0.04);
+      --hud-border: rgba(0,242,255,0.18);
+      --mono: 'Outfit', system-ui, -apple-system, "Segoe UI", Roboto, 'Helvetica Neue', Arial;
     }
-    html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
-    canvas#bg{position:fixed;inset:0;z-index:0;display:block}
-    .wrap{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px}
-    .card{
-      width:min(1100px,96%);
-      backdrop-filter: blur(10px) saturate(1.2);
-      background:linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
-      border:1px solid var(--glass-border);
-      border-radius:20px;padding:28px;box-shadow:0 10px 60px rgba(2,6,23,0.6);display:grid;grid-template-columns:1fr 420px;gap:24px;align-items:center
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#000012 0%, #000010 40%, #050019 100%);font-family:var(--mono);color:#dfefff;}
+
+    /* Full-screen 3D canvas stack */
+    #canvas-wrap{position:fixed;inset:0;overflow:hidden;}
+    canvas{display:block;position:absolute;inset:0;width:100%;height:100%;}
+
+    /* UI overlay */
+    #ui{position:fixed;left:24px;top:24px;z-index:60;display:flex;flex-direction:column;gap:12px;pointer-events:none}
+    .panel{pointer-events:auto;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid var(--hud-border);backdrop-filter:blur(6px);padding:12px;border-radius:10px;box-shadow:0 4px 40px rgba(0,0,0,0.6)}
+    .title{font-weight:700;font-size:14px;color:var(--accent1);margin-bottom:6px}
+    .controls{font-size:13px;color:#cfefff;line-height:1.3}
+
+    /* small HUD camera */
+    #hud-wrapper{position:fixed;right:20px;bottom:20px;z-index:60;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+    .cam-box{width:180px;height:140px;border-radius:12px;overflow:hidden;border:1px solid var(--hud-border);background:linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.3));box-shadow:0 8px 40px rgba(0,0,0,0.6);transform:scaleX(-1)}
+    .cam-box video, .cam-box canvas{width:100%;height:100%;object-fit:cover;display:block}
+    .guide{width:220px;text-align:right;padding:10px;border-radius:10px;background:rgba(0,10,20,0.5);border:1px solid rgba(255,255,255,0.02);font-size:12px}
+
+    /* Loading modal */
+    #loading{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:70;background:rgba(0,0,0,0.7);padding:18px;border-radius:12px;border:1px solid var(--hud-border);font-size:14px;color:var(--accent1);pointer-events:none}
+
+    /* Interaction hints (hidden on small screens) */
+    @media (max-width:600px){
+      .cam-box{width:140px;height:180px}
+      #ui{left:12px;top:12px}
+      .guide{width:160px;font-size:11px}
     }
-    .hero{padding:8px 20px}
-    h1{margin:0;font-size:clamp(32px,6vw,64px);line-height:0.95;letter-spacing:-1px;color:white}
-    .subtitle{margin-top:12px;color:rgba(255,255,255,0.78);font-size:16px}
-
-    .controls{display:flex;gap:12px;margin-top:20px;align-items:center}
-    .btn{appearance:none;border:0;padding:12px 18px;border-radius:12px;font-weight:600;cursor:pointer;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#041018;box-shadow:0 6px 30px rgba(124,58,237,0.28);}
-    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#e8f6ff}
-
-    .panel{padding:18px;border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03)}
-    .right{display:flex;flex-direction:column;gap:14px}
-    .mini{display:flex;gap:12px;align-items:center}
-    .stat{flex:1;padding:12px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);text-align:center}
-    .stat strong{display:block;font-size:20px;color:var(--accent)}
-    .footer{font-size:13px;color:rgba(255,255,255,0.65);margin-top:8px}
-
-    /* neon title animation */
-    .neon{position:relative;display:inline-block}
-    .neon::after{content:'';position:absolute;inset:0;filter:blur(18px);opacity:.45;background:linear-gradient(90deg,var(--accent),var(--accent-2));z-index:-1;border-radius:6px}
-
-    /* glitch */
-    .glitch{position:relative;color:white}
-    .glitch span{position:relative;display:inline-block}
-    .glitch::before,.glitch::after{content:attr(data-text);position:absolute;left:0;top:0;width:100%;overflow:hidden}
-    .glitch::before{color:var(--accent);transform:translate(6px,-4px);mix-blend-mode:screen;opacity:.85}
-    .glitch::after{color:var(--accent-2);transform:translate(-6px,4px);mix-blend-mode:screen;opacity:.75}
-    @keyframes shake{0%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}100%{transform:translateX(0)}}
-    .glitch:active{animation:shake .35s linear}
-
-    /* responsive */
-    @media (max-width:900px){.card{grid-template-columns:1fr;align-items:stretch}.right{order:2}}
-
-    /* little sparkle */
-    .sparkle{position:absolute;pointer-events:none;z-index:3}
   </style>
 </head>
+
 <body>
-  <canvas id="bg"></canvas>
-  <div class="wrap">
-    <div class="card">
-      <div class="hero">
-        <h1 class="glitch" data-text="AMAZE"> <span class="neon">AMAZE</span></h1>
-        <p class="subtitle">Một trang web tương tác — di chuột, nhấp, và chuẩn bị kinh ngạc.</p>
+  <div id="canvas-wrap">
+    <canvas id="bg-canvas"></canvas> <!-- particles, fog sprites -->
+    <canvas id="main-canvas"></canvas> <!-- three.js main scene -->
+    <canvas id="post-canvas"></canvas> <!-- bloom + glare approximations -->
+  </div>
 
-        <div class="controls">
-          <button id="surprise" class="btn">GÂY NGẠC NHIÊN</button>
-          <button id="sense" class="btn ghost">Chuyển chế độ</button>
-        </div>
+  <div id="loading">Khởi tạo hệ thống — Cho phép Camera để điều khiển</div>
 
-        <div class="panel" style="margin-top:18px">
-          <strong style="font-size:16px;color:var(--accent)">Hướng dẫn</strong>
-          <ul style="margin:8px 0 0 20px;color:rgba(255,255,255,0.7);line-height:1.6">
-            <li>Di chuyển chuột để kéo theo thiên thạch hạt.</li>
-            <li>Nhấp vào "GÂY NGẠC NHIÊN" để bắn pháo hoa + nhạc.</li>
-            <li>Kéo hoặc chạm để tạo các vệt sáng cá nhân hóa.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="right">
-        <div class="panel">
-          <div class="mini">
-            <div class="stat"><strong id="fps">0</strong>FPS</div>
-            <div class="stat"><strong id="particles">0</strong>Hạt</div>
-          </div>
-          <div class="footer">Tương tác: Chuột / Chạm / Nhấp</div>
-        </div>
-
-        <div class="panel">
-          <strong style="display:block;margin-bottom:8px">Tùy chỉnh</strong>
-          <label style="display:block;font-size:13px;color:rgba(255,255,255,0.75)">Cường độ hạt
-            <input id="intensity" type="range" min="0" max="2" step="0.01" value="1" style="width:100%;margin-top:8px">
-          </label>
-          <label style="display:block;margin-top:8px;font-size:13px;color:rgba(255,255,255,0.75)">Kích thước
-            <input id="size" type="range" min="0.5" max="2.5" step="0.01" value="1" style="width:100%;margin-top:8px">
-          </label>
-        </div>
+  <div id="ui">
+    <div class="panel">
+      <div class="title">Hệ thống: HYPER CORE — Epic Edition</div>
+      <div class="controls">
+        • Mở tay / Nắm tay: Phóng to / Thu nhỏ lõi.<br>
+        • Di chuyển tay: Quay & nghiêng camera.<br>
+        • Tự động: lõi chậm quay, các vòng xoay độc lập để tạo chiều sâu.
       </div>
     </div>
   </div>
 
-  <svg class="sparkle" width="0" height="0" aria-hidden="true"></svg>
+  <div id="hud-wrapper">
+    <div class="guide">
+      <div><b>Tips:</b> Giữ tay trong khung để điều khiển trực quan.</div>
+    </div>
+    <div class="cam-box">
+      <video class="input_video" playsinline webkit-playsinline muted autoplay></video>
+      <canvas class="output_canvas"></canvas>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
   <script>
-  // Canvas particle system + fireworks + audio feedback
-  const canvas = document.getElementById('bg');
-  const ctx = canvas.getContext('2d');
-  let w = canvas.width = innerWidth;
-  let h = canvas.height = innerHeight;
+    // ---------- Performance & device heuristics ----------
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 720;
+    const STAR_COUNT = isMobile ? 1200 : 4000; // fewer on mobile
 
-  window.addEventListener('resize',()=>{w=canvas.width=innerWidth;h=canvas.height=innerHeight});
+    // ---------- Canvas references ----------
+    const bgCanvas = document.getElementById('bg-canvas');
+    const mainCanvas = document.getElementById('main-canvas');
+    const postCanvas = document.getElementById('post-canvas');
 
-  // particle pool
-  const particles = [];
-  const config = {count:200, intensity:1, size:1};
-
-  const rand = (a,b)=>Math.random()*(b-a)+a;
-
-  class P{
-    constructor(x,y,vx,vy,size,color,life){
-      this.x=x;this.y=y;this.vx=vx;this.vy=vy;this.size=size;this.color=color;this.life=life;this.age=0;this.wob=rand(0,Math.PI*2)
+    // Size helper
+    function setSize() {
+      [bgCanvas, mainCanvas, postCanvas].forEach(c => {
+        c.width = window.innerWidth * devicePixelRatio;
+        c.height = window.innerHeight * devicePixelRatio;
+        c.style.width = window.innerWidth + 'px';
+        c.style.height = window.innerHeight + 'px';
+      });
     }
-    step(dt){
-      this.vy += 0.0*dt; // gravity minimal
-      this.x += this.vx*dt;this.y += this.vy*dt;this.age+=dt;this.wob += dt*6;
-    }
-    draw(ctx){
-      const t = Math.max(0,1 - this.age/this.life);
-      ctx.beginPath();
-      ctx.fillStyle = `rgba(${this.color.r},${this.color.g},${this.color.b},${(t*t)})`;
-      ctx.arc(this.x + Math.sin(this.wob)*2, this.y + Math.cos(this.wob)*2, this.size * t, 0, Math.PI*2);
-      ctx.fill();
-    }
-  }
+    setSize();
+    window.addEventListener('resize', () => { setSize(); onWindowResize(); });
 
-  function spawn(x,y,spread=80,base=6,color=null,amount=12){
-    for(let i=0;i<amount;i++){
-      const ang = rand(0,Math.PI*2);
-      const speed = rand(40,220) * (0.6 + config.intensity*0.8);
-      const vx = Math.cos(ang)*speed;
-      const vy = Math.sin(ang)*speed;
-      const s = rand(1.2,4.5) * config.size;
-      const col = color || {r:Math.floor(rand(120,255)), g:Math.floor(rand(120,255)), b:Math.floor(rand(160,255))};
-      const life = rand(0.7,1.8);
-      particles.push(new P(x,y,vx,vy,s,col,life));
-    }
-  }
+    // ---------- Background: Deep starfield + volumetric dust ----------
+    const bgCtx = bgCanvas.getContext('2d');
+    function drawBackground(time) {
+      const w = bgCanvas.width, h = bgCanvas.height;
+      bgCtx.clearRect(0,0,w,h);
+      // subtle gradient
+      const gradient = bgCtx.createLinearGradient(0,0,0,h);
+      gradient.addColorStop(0, '#000010');
+      gradient.addColorStop(1, '#000018');
+      bgCtx.fillStyle = gradient;
+      bgCtx.fillRect(0,0,w,h);
 
-  let last = performance.now();
-  let fpsEl = document.getElementById('fps');
-  let pEl = document.getElementById('particles');
-  let fpsSm = 60;
+      // star layer
+      bgCtx.globalCompositeOperation = 'lighter';
+      for (let i=0;i<STAR_COUNT;i++){
+        // pseudo-random but deterministic per index
+        const rnd = (i*9301+49297)%233280/233280;
+        const x = (rnd * (w))|0;
+        const y = ((i*7+ (time*0.00002* (i%7+1)))%h)|0;
+        const size = (i%13===0)?(1.6*devicePixelRatio):((i%17===0)?1.2*devicePixelRatio:0.6*devicePixelRatio);
+        bgCtx.beginPath();
+        bgCtx.fillStyle = 'rgba(255,255,255,' + (0.35 + (i%19)/80) + ')';
+        bgCtx.arc(x,y,size,0,Math.PI*2);
+        bgCtx.fill();
+      }
 
-  function frame(now){
-    const dt = Math.min(0.06,(now-last)/1000);
-    last = now; fpsSm = fpsSm*0.95 + (1/dt)*0.05;
-    fpsEl.textContent = Math.round(fpsSm);
+      // volumetric dust streaks
+      for (let s=0;s<60;s++){
+        const alpha = 0.02 + (s%7)/200;
+        bgCtx.fillStyle = 'rgba(120,160,255,'+alpha+')';
+        const x = (time*0.01 + s*137) % w;
+        bgCtx.fillRect((x-0.2*devicePixelRatio)|0,0,(2+Math.sin(time*0.0002+s)*8)|0,h);
+      }
 
-    // clear with trailing gradient
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = 'rgba(5,6,10,0.28)';
-    ctx.fillRect(0,0,w,h);
-
-    // background moving stars
-    for(let i=0;i<60;i++){
-      const x = (i*1237 + Math.floor(now/50))%w;
-      const y = (i*917 + Math.floor(now/80))%h;
-      const r = 0.5 + (Math.sin((now/1000)+(i)) + 1)/2;
-      ctx.fillStyle = `rgba(255,255,255,${0.03 + r*0.02})`;
-      ctx.fillRect(x,y,1,1);
+      bgCtx.globalCompositeOperation = 'source-over';
     }
 
-    // update particles
-    for(let i=particles.length-1;i>=0;i--){
-      const p = particles[i];
-      p.step(dt);
-      p.draw(ctx);
-      if(p.age > p.life){ particles.splice(i,1); }
+    // ---------- THREE.JS: Epic Core Scene ----------
+    let scene, camera, renderer, group;
+    let innerCore, midCore, outerShell, ringMeshes = [], particleCloud;
+
+    function initThree(){
+      scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x000011, 0.0012);
+
+      camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 4000);
+      camera.position.set(0, 8, 28);
+
+      renderer = new THREE.WebGLRenderer({canvas: mainCanvas, antialias: true, alpha: true});
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      // Lighting
+      const amb = new THREE.AmbientLight(0x081020, 0.8);
+      scene.add(amb);
+      const key = new THREE.PointLight(0xffffff, 4, 800, 2);
+      key.position.set(0,0,60);
+      scene.add(key);
+      const rim1 = new THREE.PointLight(0x00f2ff, 2.2, 500);
+      rim1.position.set(60,30,10);
+      scene.add(rim1);
+      const rim2 = new THREE.PointLight(0xbd00ff, 1.8, 500);
+      rim2.position.set(-60,-30,10);
+      scene.add(rim2);
+
+      // Group root
+      group = new THREE.Group();
+      scene.add(group);
+
+      // INNER CORE: energetic plasma
+      const innerGeo = new THREE.IcosahedronGeometry(3.2, 5);
+      const innerMat = new THREE.MeshStandardMaterial({
+        emissive: 0x66f8ff,
+        emissiveIntensity: 1.2,
+        roughness: 0.1,
+        metalness: 0.0,
+        transparent: true,
+        opacity: 0.95
+      });
+      innerCore = new THREE.Mesh(innerGeo, innerMat);
+      innerCore.scale.set(0.85,0.85,0.85);
+      group.add(innerCore);
+
+      // MID CORE: molten metallic shell
+      const midGeo = new THREE.OctahedronGeometry(5.8, 2);
+      const midMat = new THREE.MeshStandardMaterial({
+        color: 0x0b0b0b,
+        metalness: 0.9,
+        roughness: 0.15,
+        emissive: 0x220033,
+        emissiveIntensity: 0.35,
+        envMapIntensity: 1.0,
+        side: THREE.DoubleSide
+      });
+      midCore = new THREE.Mesh(midGeo, midMat);
+      midCore.material.onBeforeCompile = shader => {
+        // subtle rim glow via vertex displacement (lightweight)
+        shader.fragmentShader = shader.fragmentShader.replace(
+          'void main() {',
+          'varying float vNormalDot; void main() {'
+        ).replace(
+          'gl_FragColor = vec4( outgoingLight, diffuseColor.a );',
+          'float rim = pow(1.0 - vNormalDot, 2.5); gl_FragColor = vec4(outgoingLight + vec3(0.08,0.18,0.22) * rim, diffuseColor.a );'
+        );
+        shader.vertexShader = 'varying float vNormalDot;'+shader.vertexShader.replace(
+          'void main() {',
+          'void main() {'
+        ).replace(
+          '#include <beginnormal_vertex>',
+          '#include <beginnormal_vertex>\n vNormalDot = dot( normal, normalize( vec3(0.0,0.0,1.0) ) );'
+        );
+      };
+      group.add(midCore);
+
+      // OUTER SHELL: segmented plates
+      const plateCount = 18;
+      outerShell = new THREE.Group();
+      for(let i=0;i<plateCount;i++){
+        const plate = new THREE.Mesh(new THREE.BoxGeometry(12,0.8,6), new THREE.MeshStandardMaterial({
+          color: (i%2===0)?0x03030b:0x06061a,
+          metalness: 0.8, roughness: 0.1, emissive: (i%2===0)?0x001526:0x15001a, emissiveIntensity:0.08
+        }));
+        const ang = (i/plateCount)*Math.PI*2;
+        plate.position.set(Math.cos(ang)*9, Math.sin(ang)*9, 0);
+        plate.rotation.z = ang + Math.PI/2;
+        plate.userData = {rotSpeed: (0.001 + Math.random()*0.003) * (i%2?1:-1)};
+        outerShell.add(plate);
+      }
+      group.add(outerShell);
+
+      // RINGS: multiple orbiting rings with glow
+      for(let r=0;r<6;r++){
+        const radius = 11 + r*2.5;
+        const tor = new THREE.TorusGeometry(radius, 0.25 + r*0.06, 8, 240);
+        const mat = new THREE.MeshStandardMaterial({
+          emissive: (r%2===0)?0x00f2ff:0xbd00ff,
+          emissiveIntensity: 0.9 - r*0.08,
+          metalness: 0.2, roughness: 0.05,
+          transparent: true, opacity: 0.9
+        });
+        const mesh = new THREE.Mesh(tor, mat);
+        mesh.rotation.x = Math.random()*Math.PI;
+        mesh.rotation.y = Math.random()*Math.PI;
+        mesh.userData = {rotSpeedX: (Math.random()-0.5)*0.006, rotSpeedY: (Math.random()-0.5)*0.006};
+        group.add(mesh);
+        ringMeshes.push(mesh);
+      }
+
+      // PARTICLE CLOUD around core (3D points)
+      const pcount = isMobile?1500:6000;
+      const pGeo = new THREE.BufferGeometry();
+      const pos = new Float32Array(pcount*3);
+      const sizes = new Float32Array(pcount);
+      for(let i=0;i<pcount;i++){
+        const r = 20 + Math.random()*160;
+        const theta = Math.random()*Math.PI*2;
+        const phi = (Math.random()-0.5)*Math.PI;
+        pos[i*3] = Math.cos(theta)*Math.cos(phi)*r;
+        pos[i*3+1] = Math.sin(phi)*r*0.6;
+        pos[i*3+2] = Math.sin(theta)*Math.cos(phi)*r;
+        sizes[i] = 0.5 + Math.random()*2.5;
+      }
+      pGeo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+      pGeo.setAttribute('size', new THREE.BufferAttribute(sizes,1));
+      const pMat = new THREE.PointsMaterial({size: isMobile?0.8:1.6,sizeAttenuation:true,alphaTest:0.001,transparent:true,opacity:0.95,blending:THREE.AdditiveBlending});
+      particleCloud = new THREE.Points(pGeo,pMat);
+      scene.add(particleCloud);
+
+      // subtle camera orbital target
+      camera.lookAt(0,0,0);
     }
 
-    pEl.textContent = particles.length;
+    initThree();
 
-    requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-
-  // mouse controls: attractor line
-  let mouse = {x:w/2,y:h/2,down:false};
-  addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;for(let i=0;i<2;i++) spawn(mouse.x,mouse.y,80,6,null,4)});
-  addEventListener('pointerdown',e=>{mouse.down=true;spawn(e.clientX,e.clientY,120,8,null,28)});
-  addEventListener('pointerup',e=>{mouse.down=false});
-
-  // UI controls
-  document.getElementById('intensity').addEventListener('input',e=>{config.intensity = parseFloat(e.target.value)});
-  document.getElementById('size').addEventListener('input',e=>{config.size = parseFloat(e.target.value)});
-
-  // surprise button -> fireworks + ascending chord using WebAudio
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const btn = document.getElementById('surprise');
-  let mode = 0;
-  document.getElementById('sense').addEventListener('click',()=>{
-    mode = (mode+1)%3;
-    if(mode===0) document.body.style.background = 'var(--bg)';
-    if(mode===1) document.body.style.background = 'linear-gradient(180deg,#001021,#0a0019)';
-    if(mode===2) document.body.style.background = 'linear-gradient(45deg,#07121a,#0b0716)';
-  });
-
-  btn.addEventListener('click',async()=>{
-    // particles explosion centers
-    const cx = rand(100,w-100);
-    const cy = rand(100,h-100);
-    for(let i=0;i<8;i++){
-      const angle = i*(Math.PI*2/8) + rand(-0.3,0.3);
-      const px = cx + Math.cos(angle)*rand(0,40);
-      const py = cy + Math.sin(angle)*rand(0,40);
-      spawn(px,py,140,12,null,60);
+    // ---------- Resize helper for three ----------
+    function onWindowResize(){
+      if(!camera||!renderer) return;
+      camera.aspect = window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
     }
-    // mini fireworks
-    for(let i=0;i<5;i++){ spawn(rand(120,w-120), rand(120,h-120), 200, 14, null, 80); }
 
-    // audio: quick ascending arpeggio + bell-ish tones
-    if(audioCtx.state === 'suspended') await audioCtx.resume();
-    const t0 = audioCtx.currentTime;
-    const freqs = [220,330,440,660];
-    freqs.forEach((f,idx)=>{
-      const o = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      o.type = 'sine';
-      o.frequency.value = f * (1 + idx*0.02);
-      g.gain.value = 0.001;
-      o.connect(g);g.connect(audioCtx.destination);
-      o.start(t0 + idx*0.06);
-      g.gain.linearRampToValueAtTime(0.08, t0 + idx*0.06 + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + idx*0.06 + 1.2);
-      o.stop(t0 + idx*0.06 + 1.2);
-    });
+    // ---------- Mediapipe Hands & HUD ----------
+    const videoElement = document.querySelector('.input_video');
+    const canvasElement = document.querySelector('.output_canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+    const loadingDiv = document.getElementById('loading');
 
-    // visual sparkle burst
-    for(let i=0;i<32;i++){
-      spawn(cx + rand(-60,60), cy + rand(-60,60), 220, 8, {r:Math.floor(rand(120,255)),g:Math.floor(rand(120,255)),b:Math.floor(rand(180,255))}, 10);
+    let targetScale = 1;
+    let currentScale = 1;
+    let targetRotX = 0, targetRotY = 0;
+    let lastX = 0.5, lastY = 0.5;
+
+    function onResults(results){
+      loadingDiv.style.display = 'none';
+      canvasElement.width = videoElement.videoWidth;
+      canvasElement.height = videoElement.videoHeight;
+      canvasCtx.save();
+      canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
+
+      if(results.multiHandLandmarks && results.multiHandLandmarks.length){
+        const lm = results.multiHandLandmarks[0];
+        drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color:'#00f2cc',lineWidth:2});
+        drawLandmarks(canvasCtx, lm, {color:'#ff66dd',lineWidth:1,radius:2});
+
+        const wrist = lm[0];
+        const midTip = lm[12];
+        const dist = Math.hypot(midTip.x - wrist.x, midTip.y - wrist.y);
+        let openness = (dist - 0.07) * 5.5;
+        openness = Math.max(0.5, Math.min(2.6, openness));
+        targetScale = openness;
+
+        const palmX = lm[9].x; const palmY = lm[9].y;
+        const sensitivity = 6.0;
+        targetRotY += (palmX - lastX) * -sensitivity;
+        targetRotX += (palmY - lastY) * sensitivity;
+        lastX = palmX; lastY = palmY;
+      } else {
+        // gentle idle motion
+        targetScale = 1.0;
+        targetRotY += 0.0015;
+      }
+      canvasCtx.restore();
     }
-  });
 
-  // subtle auto ambient spawn to keep scene alive
-  setInterval(()=>{
-    const x = rand(50,w-50); const y = rand(50,h-50);
-    spawn(x,y,100,6,null,18);
-  }, 900);
+    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+    hands.setOptions({maxNumHands:1,modelComplexity:1,minDetectionConfidence:0.55,minTrackingConfidence:0.55});
+    hands.onResults(onResults);
 
-  // accessibility: allow spacebar to trigger surprise
-  addEventListener('keydown',e=>{ if(e.code==='Space'){ e.preventDefault(); btn.click(); } });
+    const cameraUtils = new Camera(videoElement, {onFrame: async ()=>{ await hands.send({image:videoElement}); }, width: isMobile?360:640, height: isMobile?480:720});
+    cameraUtils.start().catch(err=>{ loadingDiv.innerText = 'Lỗi Camera: ' + err; });
 
-  // initial burst
-  for(let i=0;i<6;i++) spawn(w/2 + rand(-120,120), h/2 + rand(-120,120), 160, 8, null, 40);
+    // ---------- Main animation loop ----------
+    let tStart = performance.now();
+    function renderFrame(t){
+      const time = t - tStart;
+      requestAnimationFrame(renderFrame);
+
+      // Background canvas
+      drawBackground(t);
+
+      // smooth lerp scale & rotation
+      currentScale += (targetScale - currentScale) * 0.08;
+      group.scale.setScalar(currentScale);
+      group.rotation.y += (targetRotY - group.rotation.y) * 0.08;
+      group.rotation.x += (targetRotX - group.rotation.x) * 0.06;
+
+      // animate components
+      if(innerCore){ innerCore.rotation.x += 0.0035; innerCore.rotation.y += 0.007; }
+      if(midCore){ midCore.rotation.y -= 0.0016; }
+      if(outerShell){ outerShell.children.forEach((p,i)=> p.rotation.z += p.userData.rotSpeed); }
+      ringMeshes.forEach(r=>{ r.rotation.x += r.userData.rotSpeedX; r.rotation.y += r.userData.rotSpeedY; });
+
+      // particle cloud subtle drift
+      if(particleCloud){ particleCloud.rotation.y += 0.0006; particleCloud.rotation.x = Math.sin(time*0.00006)*0.03; }
+
+      // camera subtle bob
+      camera.position.x += (Math.sin(time*0.00027) * 0.05 - camera.position.x) * 0.02;
+      camera.position.y += (Math.cos(time*0.00019) * 0.05 - camera.position.y) * 0.02;
+      camera.lookAt(0,0,0);
+
+      renderer.render(scene, camera);
+
+      // lightweight post-processing: draw additive glow to postCanvas
+      const postCtx = postCanvas.getContext('2d');
+      postCtx.clearRect(0,0,postCanvas.width, postCanvas.height);
+      postCtx.globalCompositeOperation = 'lighter';
+      // sample a glow around center — approximate bloom using radial gradient
+      const cx = postCanvas.width/2, cy = postCanvas.height/2;
+      const grad = postCtx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(cx,cy)*0.9);
+      grad.addColorStop(0, 'rgba(0,255,220,0.06)');
+      grad.addColorStop(0.25, 'rgba(80,40,120,0.02)');
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      postCtx.fillStyle = grad;
+      postCtx.fillRect(0,0,postCanvas.width, postCanvas.height);
+      postCtx.globalCompositeOperation = 'source-over';
+    }
+    requestAnimationFrame(renderFrame);
+
+    // ---------- Initialization guard ----------
+    // Ensure Three scene is ready when loaded
+    function ensureInit(){ if(!scene) initThree(); }
+    ensureInit();
 
   </script>
 </body>
+
 </html>

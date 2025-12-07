@@ -1,220 +1,655 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phản Chiệu Kỳ Diệu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>3D Hand Control by Gemini and Z - Cosmic Core</title>
     <style>
-        /* Font chữ mang lại cảm giác công nghệ */
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Orbitron', sans-serif;
-            background: #000;
-            color: #fff;
+            margin: 0;
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            flex-direction: column;
+            background-color: #000;
+            font-family: 'Courier New', Courier, monospace;
         }
 
-        /* Các phần tử ẩn để xử lý video */
-        #video, #canvas {
-            display: none;
-        }
-
-        /* Cảnh 3D */
-        .scene {
-            width: 200px;
-            height: 200px;
-            perspective: 600px;
-            margin: 40px;
-        }
-
-        /* Khối hộp 3D */
-        .cube {
+        /* Container cho 3D */
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.1s;
+            z-index: 1;
         }
 
-        /* Mặt của khối hộp */
-        .cube-face {
+        #canvas3d {
             position: absolute;
-            width: 200px;
-            height: 200px;
-            border: 2px solid rgba(0, 255, 255, 0.8);
-            background: radial-gradient(circle, rgba(0, 255, 255, 0.2), rgba(0, 0, 0, 0.4));
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5) inset;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            font-weight: bold;
-            text-shadow: 0 0 10px #0ff;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+            mix-blend-mode: screen;
         }
 
-        .cube-face-front  { transform: rotateY(  0deg) translateZ(100px); }
-        .cube-face-right  { transform: rotateY( 90deg) translateZ(100px); }
-        .cube-face-back   { transform: rotateY(180deg) translateZ(100px); }
-        .cube-face-left   { transform: rotateY(-90deg) translateZ(100px); }
-        .cube-face-top    { transform: rotateX( 90deg) translateZ(100px); }
-        .cube-face-bottom { transform: rotateX(-90deg) translateZ(100px); }
-
-        /* Phần văn bản hướng dẫn */
-        .container {
+        /* Màn hình chờ */
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00ffcc;
+            font-size: 18px;
+            z-index: 20;
+            pointer-events: none;
             text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #00ffcc;
+        }
+
+        /* --- KHU VỰC HUD (Webcam Mini) --- */
+        #hud-wrapper {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
             z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            pointer-events: none;
         }
 
-        h1 {
-            font-size: 2.5em;
-            font-weight: 900;
-            background: linear-gradient(45deg, #0ff, #f0f);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .cam-box {
+            position: relative;
+            width: 160px;
+            height: 120px;
+            border: 2px solid #00ffcc;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+            transform: scaleX(-1);
+        }
+
+        .input_video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .output_canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .guide-box {
             margin-bottom: 10px;
-            animation: glow 2s ease-in-out infinite alternate;
+            background: rgba(0, 20, 40, 0.8);
+            border: 1px solid rgba(0, 255, 204, 0.5);
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            width: 200px;
+            text-align: right;
+            backdrop-filter: blur(5px);
         }
 
-        @keyframes glow {
-            from { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #0ff; }
-            to { text-shadow: 0 0 20px #fff, 0 0 30px #f0f, 0 0 40px #f0f; }
+        .guide-box b {
+            color: #00ffcc;
         }
 
-        p {
-            font-size: 1.2em;
-            color: #aaa;
-            margin-top: 20px;
-        }
+        @media (max-width: 600px) {
+            .cam-box {
+                width: 120px;
+                height: 160px;
+            }
 
-        #status {
-            color: #0ff;
-            font-weight: bold;
-            min-height: 1.5em;
+            .guide-box {
+                width: 150px;
+                font-size: 11px;
+            }
         }
     </style>
 </head>
+
 <body>
 
-    <div class="container">
-        <h1>Phản Chiệu Kỳ Diệu</h1>
-        <p id="status">Đang khởi tạo...</p>
+    <div id="loading">
+        🚀 Đang khởi động hệ thống vũ trụ...<br>
+        <small>Vui lòng chờ & Cho phép Camera</small>
     </div>
 
-    <!-- Cảnh 3D -->
-    <div class="scene">
-        <div class="cube" id="cube">
-            <div class="cube-face cube-face-front">TRƯỚC</div>
-            <div class="cube-face cube-face-back">SAU</div>
-            <div class="cube-face cube-face-right">PHẢI</div>
-            <div class="cube-face cube-face-left">TRÁI</div>
-            <div class="cube-face cube-face-top">TRÊN</div>
-            <div class="cube-face cube-face-bottom">DƯỚI</div>
+    <div id="canvas-container">
+        <canvas id="canvas1"></canvas>
+        <canvas id="canvas3d"></canvas>
+    </div>
+    <div id="hud-wrapper">
+        <div class="guide-box">
+            <div>🖐 <b>Mở tay:</b> Phóng to vật thể</div>
+            <div>✊ <b>Nắm tay:</b> Thu nhỏ vật thể</div>
+            <div>👋 <b>Di chuyển:</b> Xoay camera</div>
+            <div style="margin-top:5px; color:#aaa; font-style:italic;">(Đặt tay vào khung bên dưới)</div>
+        </div>
+
+        <div class="cam-box">
+            <video class="input_video" playsinline webkit-playsinline muted autoplay></video>
+            <canvas class="output_canvas"></canvas>
         </div>
     </div>
 
-    <!-- Các phần tử ẩn để xử lý video -->
-    <video id="video" width="640" height="480" autoplay></video>
-    <canvas id="canvas" width="640" height="480"></canvas>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
     <script>
-        // Lấy các phần tử DOM cần thiết
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const statusText = document.getElementById('status');
-        const cube = document.getElementById('cube');
-        const ctx = canvas.getContext('2d');
+        // --- 1. SETUP THREE.JS (ĐỒ HỌA) ---
+        const container = document.getElementById('canvas-container');
+        const canvas3d = document.getElementById('canvas3d');
 
-        const width = canvas.width;
-        const height = canvas.height;
+        // Define global variables for Three.js objects
+        let scene, camera, renderer, group, outerMesh, innerMesh, stars, nebula, coreParticles, energyOrbs;
 
-        let previousFrame = null;
+        function init3D() {
+            scene = new THREE.Scene();
+            // Enhanced fog for depth and "massive" scale feeling
+            scene.fog = new THREE.FogExp2(0x000033, 0.0008);
 
-        // Hàm chính để khởi tạo
-        async function init() {
-            try {
-                // Yêu cầu truy cập webcam
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = stream;
-                video.play();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.z = 15; // Move camera further back to fit the massive object
 
-                statusText.textContent = "Di chuyển để thấy điều kỳ diệu!";
+            renderer = new THREE.WebGLRenderer({ canvas: canvas3d, antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-                // Khởi tạo khung hình trước là một khung hình đen
-                previousFrame = ctx.createImageData(width, height);
+            // Enhanced Lighting - More dramatic
+            const ambientLight = new THREE.AmbientLight(0x000033, 0.5); // Dark blue ambient
+            scene.add(ambientLight);
 
-                // Bắt đầu vòng lặp phát hiện chuyển động
-                requestAnimationFrame(detectMotion);
+            const pointLight1 = new THREE.PointLight(0x00f2ff, 3, 200);
+            pointLight1.position.set(30, 30, 30);
+            pointLight1.castShadow = true;
+            scene.add(pointLight1);
 
-            } catch (err) {
-                console.error("Không thể truy cập webcam:", err);
-                statusText.textContent = "Lỗi: Không thể truy cập webcam. Vui lòng kiểm tra lại quyền truy cập.";
+            const pointLight2 = new THREE.PointLight(0xbd00ff, 3, 200);
+            pointLight2.position.set(-30, -30, 30);
+            pointLight2.castShadow = true;
+            scene.add(pointLight2);
+
+            const pointLight3 = new THREE.PointLight(0xff00aa, 2, 150);
+            pointLight3.position.set(0, 30, -30);
+            scene.add(pointLight3);
+
+            const coreLight = new THREE.PointLight(0xffffff, 2, 100);
+            coreLight.position.set(0, 0, 0);
+            coreLight.castShadow = true;
+            scene.add(coreLight);
+
+            // VẬT THỂ: "COSMIC CORE" (ĐỒ SỘ HÙNG VĨ)
+            group = new THREE.Group();
+            scene.add(group);
+
+            // 1. Lõi Năng Lượng Vũ Trụ (Cosmic Core)
+            const coreGeo = new THREE.IcosahedronGeometry(2.0, 3); // Larger and more detailed
+            const coreMat = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.9
+            });
+            innerMesh = new THREE.Mesh(coreGeo, coreMat);
+            group.add(innerMesh);
+
+            // Lớp phát sáng trong - Enhanced
+            const glowGeo = new THREE.IcosahedronGeometry(1.8, 4);
+            const glowMat = new THREE.MeshBasicMaterial({
+                color: 0x00f2ff,
+                transparent: true,
+                opacity: 0.2,
+                blending: THREE.AdditiveBlending
+            });
+            const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+            group.add(glowMesh);
+
+            // Lớp năng lượng thứ hai
+            const energyGeo = new THREE.IcosahedronGeometry(2.2, 2);
+            const energyMat = new THREE.MeshBasicMaterial({
+                color: 0xbd00ff,
+                transparent: true,
+                opacity: 0.1,
+                blending: THREE.AdditiveBlending
+            });
+            const energyMesh = new THREE.Mesh(energyGeo, energyMat);
+            group.add(energyMesh);
+
+            // 2. Vỏ Giáp Cơ Khí Nâng Cao (Enhanced Tech Shell)
+            const shellGeo = new THREE.IcosahedronGeometry(4.0, 2); // Larger and more detailed
+            const shellMat = new THREE.MeshPhongMaterial({
+                color: 0x000033,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.6,
+                emissive: 0x00f2ff,
+                emissiveIntensity: 0.3,
+                side: THREE.DoubleSide
+            });
+            outerMesh = new THREE.Mesh(shellGeo, shellMat);
+            group.add(outerMesh);
+
+            // Vỏ ngoài thứ hai
+            const outerShellGeo = new THREE.IcosahedronGeometry(5.5, 1);
+            const outerShellMat = new THREE.MeshPhongMaterial({
+                color: 0x000033,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.3,
+                emissive: 0xbd00ff,
+                emissiveIntensity: 0.2,
+                side: THREE.DoubleSide
+            });
+            const outerShellMesh = new THREE.Mesh(outerShellGeo, outerShellMat);
+            group.add(outerShellMesh);
+
+            // 3. Hệ Thống Vòng Mở Rộng (Expanded Rings System)
+            const ringCount = 8; // More rings
+            for (let i = 0; i < ringCount; i++) {
+                const radius = 6.0 + i * 1.0; // Larger radius
+                const tube = 0.1 + i * 0.03;
+                const ringGeo = new THREE.TorusGeometry(radius, tube, 16, 200);
+                
+                // More varied colors
+                let ringColor;
+                if (i % 3 === 0) ringColor = 0x00f2ff;
+                else if (i % 3 === 1) ringColor = 0xbd00ff;
+                else ringColor = 0xff00aa;
+                
+                const ringMat = new THREE.MeshPhongMaterial({
+                    color: ringColor,
+                    emissive: ringColor,
+                    transparent: true,
+                    opacity: 0.6 - i * 0.05,
+                    wireframe: i > 4
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+
+                // Random orientation
+                ring.rotation.x = Math.random() * Math.PI;
+                ring.rotation.y = Math.random() * Math.PI;
+
+                // Custom properties for animation
+                ring.userData = {
+                    rotSpeedX: (Math.random() - 0.5) * 0.02,
+                    rotSpeedY: (Math.random() - 0.5) * 0.02,
+                    rotSpeedZ: (Math.random() - 0.5) * 0.02
+                };
+
+                group.add(ring);
+            }
+
+            // 4. Trường Sao Mở Rộng (Massive Starfield)
+            const starGeo = new THREE.BufferGeometry();
+            const starCount = 5000; // More stars
+            const starPos = new Float32Array(starCount * 3);
+            const starColors = new Float32Array(starCount * 3);
+            
+            for (let i = 0; i < starCount; i++) {
+                const i3 = i * 3;
+                starPos[i3] = (Math.random() - 0.5) * 300; // Larger range
+                starPos[i3 + 1] = (Math.random() - 0.5) * 300;
+                starPos[i3 + 2] = (Math.random() - 0.5) * 300;
+                
+                // Varied star colors
+                const color = new THREE.Color();
+                if (Math.random() > 0.8) color.setHSL(Math.random(), 0.5, 0.7);
+                else color.setHSL(0.6, 0.2, Math.random() * 0.8 + 0.2);
+                
+                starColors[i3] = color.r;
+                starColors[i3 + 1] = color.g;
+                starColors[i3 + 2] = color.b;
+            }
+            
+            starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+            starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+            
+            stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
+                size: 0.3,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending,
+                vertexColors: true
+            }));
+            scene.add(stars);
+
+            // 5. Tinh Vân Năng Lượng (Energy Nebula)
+            const nebulaGeo = new THREE.BufferGeometry();
+            const nebulaCount = 2000;
+            const nebulaPos = new Float32Array(nebulaCount * 3);
+            const nebulaColors = new Float32Array(nebulaCount * 3);
+            const nebulaSizes = new Float32Array(nebulaCount);
+            
+            for (let i = 0; i < nebulaCount; i++) {
+                const i3 = i * 3;
+                const radius = Math.random() * 15 + 5;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(Math.random() * 2 - 1);
+                
+                nebulaPos[i3] = radius * Math.sin(phi) * Math.cos(theta);
+                nebulaPos[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                nebulaPos[i3 + 2] = radius * Math.cos(phi);
+                
+                const color = new THREE.Color();
+                color.setHSL(Math.random() * 0.2 + 0.5, 0.8, Math.random() * 0.5 + 0.3);
+                
+                nebulaColors[i3] = color.r;
+                nebulaColors[i3 + 1] = color.g;
+                nebulaColors[i3 + 2] = color.b;
+                
+                nebulaSizes[i] = Math.random() * 2 + 0.5;
+            }
+            
+            nebulaGeo.setAttribute('position', new THREE.BufferAttribute(nebulaPos, 3));
+            nebulaGeo.setAttribute('color', new THREE.BufferAttribute(nebulaColors, 3));
+            nebulaGeo.setAttribute('size', new THREE.BufferAttribute(nebulaSizes, 1));
+            
+            nebula = new THREE.Points(nebulaGeo, new THREE.PointsMaterial({
+                size: 0.5,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending,
+                vertexColors: true,
+                sizeAttenuation: true
+            }));
+            scene.add(nebula);
+
+            // 6. Hệ Thống Hạt Năng Lượng (Core Particle System)
+            const particleGeo = new THREE.BufferGeometry();
+            const particleCount = 1000;
+            const particlePos = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                const radius = Math.random() * 3;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+                
+                particlePos[i] = radius * Math.sin(phi) * Math.cos(theta);
+                particlePos[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                particlePos[i + 2] = radius * Math.cos(phi);
+            }
+            
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
+            
+            coreParticles = new THREE.Points(particleGeo, new THREE.PointsMaterial({
+                color: 0xffffff,
+                size: 0.1,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            }));
+            group.add(coreParticles);
+
+            // 7. Quả Cầu Năng Lượng Bay Lượn (Energy Orbs)
+            energyOrbs = [];
+            const orbCount = 12;
+            
+            for (let i = 0; i < orbCount; i++) {
+                const orbGeo = new THREE.SphereGeometry(0.2 + Math.random() * 0.3, 16, 16);
+                const orbMat = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(Math.random(), 0.8, 0.6),
+                    transparent: true,
+                    opacity: 0.8,
+                    blending: THREE.AdditiveBlending
+                });
+                
+                const orb = new THREE.Mesh(orbGeo, orbMat);
+                
+                // Random position in a sphere around the core
+                const radius = 3 + Math.random() * 3;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+                
+                orb.position.x = radius * Math.sin(phi) * Math.cos(theta);
+                orb.position.y = radius * Math.sin(phi) * Math.sin(theta);
+                orb.position.z = radius * Math.cos(phi);
+                
+                // Custom properties for animation
+                orb.userData = {
+                    radius: radius,
+                    theta: theta,
+                    phi: phi,
+                    speedTheta: (Math.random() - 0.5) * 0.02,
+                    speedPhi: (Math.random() - 0.5) * 0.01,
+                    pulseSpeed: Math.random() * 0.05 + 0.01,
+                    pulsePhase: Math.random() * Math.PI * 2
+                };
+                
+                energyOrbs.push(orb);
+                group.add(orb);
             }
         }
 
-        // Hàm phát hiện chuyển động và cập nhật khối hộp 3D
-        function detectMotion() {
-            // Vẽ khung hình hiện tại của video lên canvas
-            ctx.drawImage(video, 0, 0, width, height);
-            
-            // Lấy dữ liệu pixel của khung hình hiện tại
-            const currentFrame = ctx.getImageData(0, 0, width, height);
-            
-            if (!previousFrame.data) {
-                previousFrame = currentFrame;
-                requestAnimationFrame(detectMotion);
-                return;
+        init3D();
+
+        // --- 2. SETUP MEDIAPIPE (AI CAMERA) ---
+        const videoElement = document.querySelector('.input_video');
+        const canvasElement = document.querySelector('.output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const loadingDiv = document.getElementById('loading');
+
+        function onResults(results) {
+            // Ẩn loading khi đã nhận được frame đầu tiên
+            loadingDiv.style.display = 'none';
+
+            // Vẽ lên canvas mini
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+
+                // Vẽ xương tay lên HUD mini
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00ffcc', lineWidth: 2 });
+                drawLandmarks(canvasCtx, landmarks, { color: '#ff00cc', lineWidth: 1, radius: 2 });
+
+                // LOGIC ĐIỀU KHIỂN
+                const wrist = landmarks[0];
+                const middleTip = landmarks[12];
+
+                // Đo khoảng cách (Zoom)
+                const distance = Math.sqrt(
+                    Math.pow(middleTip.x - wrist.x, 2) + Math.pow(middleTip.y - wrist.y, 2)
+                );
+                // Điều chỉnh độ nhạy zoom
+                let openness = (distance - 0.1) * 5;
+                if (openness < 0.3) openness = 0.3;
+                if (openness > 2.0) openness = 2.0;
+                targetScale = openness;
+
+                // Đo vị trí (Xoay)
+                const palmX = landmarks[9].x;
+                const palmY = landmarks[9].y;
+                const sensitivity = 5; // Độ nhạy xoay
+
+                // Tính độ lệch xoay
+                targetRotY += (palmX - lastX) * -sensitivity;
+                targetRotX += (palmY - lastY) * sensitivity;
+
+                lastX = palmX;
+                lastY = palmY;
+
+            } else {
+                // Không thấy tay: Reset nhẹ
+                targetScale = 1;
+                targetRotY += 0.002;
             }
-
-            let motion = 0;
-            const pixelCount = width * height;
-            const pixelsToCheck = pixelCount * 0.05; // Chỉ kiểm tra 5% pixel để tăng hiệu suất
-
-            // Lặp qua các pixel để tính toán sự khác biệt
-            for (let i = 0; i < pixelsToCheck; i++) {
-                const pixelIndex = i * 4 * (pixelCount / pixelsToCheck); // Lấy mẫu ngẫu nhiên
-                
-                // Tính toán sự khác biệt về độ sáng giữa các khung hình
-                const rDiff = Math.abs(currentFrame.data[pixelIndex] - previousFrame.data[pixelIndex]);
-                const gDiff = Math.abs(currentFrame.data[pixelIndex + 1] - previousFrame.data[pixelIndex + 1]);
-                const bDiff = Math.abs(currentFrame.data[pixelIndex + 2] - previousFrame.data[pixelIndex + 2]);
-                
-                motion += (rDiff + gDiff + bDiff) / 3;
-            }
-
-            // Chuẩn hóa giá trị chuyển động
-            const avgMotion = motion / pixelsToCheck;
-            
-            // Ánh xạ mức độ chuyển động đến các thuộc tính transform của khối hộp
-            const scale = 1 + avgMotion * 0.8; // Co giãn theo chuyển động
-            const rotateY = avgMotion * 720; // Xoay theo trục Y
-            const rotateX = avgMotion * 360; // Xoay theo trục X
-
-            // Áp dụng transform
-            cube.style.transform = `scale(${scale}) rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
-            
-            // Cập nhật khung hình trước cho lần kiểm tra tiếp theo
-            previousFrame = currentFrame;
-
-            // Tiếp tục vòng lặp
-            requestAnimationFrame(detectMotion);
+            canvasCtx.restore();
         }
 
-        // Bắt đầu chương trình khi trang tải xong
-        window.onload = init;
+        const hands = new Hands({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            }
+        });
+
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 0,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+        hands.onResults(onResults);
+
+        // Camera setup cho iOS
+        const cameraUtils = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({ image: videoElement });
+            },
+            width: 480,
+            height: 640
+        });
+
+        // Bắt lỗi camera
+        cameraUtils.start().catch(err => {
+            loadingDiv.innerHTML = "❌ Lỗi Camera: " + err + "<br>Hãy thử mở bằng Safari và chọn HTTPS.";
+        });
+
+        // Biến điều khiển
+        let targetScale = 1;
+        let currentScale = 1;
+        let targetRotX = 0, targetRotY = 0;
+        let lastX = 0.5, lastY = 0.5;
+
+        let animationId;
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Lerp để mượt chuyển động (Logic điều khiển bằng tay)
+            currentScale += (targetScale - currentScale) * 0.1;
+
+            if (group) {
+                group.scale.set(currentScale, currentScale, currentScale);
+                group.rotation.y += (targetRotY - group.rotation.y) * 0.1;
+                group.rotation.x += (targetRotX - group.rotation.x) * 0.1;
+            }
+
+            // Hiệu ứng "sống" (Tự động quay)
+            if (outerMesh) {
+                outerMesh.rotation.z -= 0.008;
+                outerMesh.rotation.y -= 0.004;
+            }
+            if (innerMesh) {
+                innerMesh.rotation.x += 0.015;
+                innerMesh.rotation.y += 0.01;
+            }
+
+            // Animate nebula
+            if (nebula) {
+                nebula.rotation.y += 0.0005;
+                nebula.rotation.x += 0.0002;
+            }
+
+            // Animate core particles
+            if (coreParticles) {
+                coreParticles.rotation.x += 0.01;
+                coreParticles.rotation.y += 0.005;
+                
+                // Update particle positions
+                const positions = coreParticles.geometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    const x = positions[i];
+                    const y = positions[i + 1];
+                    const z = positions[i + 2];
+                    
+                    // Calculate distance from center
+                    const distance = Math.sqrt(x * x + y * y + z * z);
+                    
+                    // Move particles outward and then reset
+                    if (distance > 3) {
+                        // Reset to center
+                        const theta = Math.random() * Math.PI * 2;
+                        const phi = Math.random() * Math.PI;
+                        const radius = Math.random() * 0.5;
+                        
+                        positions[i] = radius * Math.sin(phi) * Math.cos(theta);
+                        positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                        positions[i + 2] = radius * Math.cos(phi);
+                    } else {
+                        // Move outward
+                        positions[i] *= 1.01;
+                        positions[i + 1] *= 1.01;
+                        positions[i + 2] *= 1.01;
+                    }
+                }
+                coreParticles.geometry.attributes.position.needsUpdate = true;
+            }
+
+            // Animate energy orbs
+            if (energyOrbs) {
+                energyOrbs.forEach(orb => {
+                    const userData = orb.userData;
+                    
+                    // Update position in spherical coordinates
+                    userData.theta += userData.speedTheta;
+                    userData.phi += userData.speedPhi;
+                    
+                    // Calculate new position
+                    orb.position.x = userData.radius * Math.sin(userData.phi) * Math.cos(userData.theta);
+                    orb.position.y = userData.radius * Math.sin(userData.phi) * Math.sin(userData.theta);
+                    orb.position.z = userData.radius * Math.cos(userData.phi);
+                    
+                    // Pulse effect
+                    const pulseFactor = 1 + Math.sin(Date.now() * userData.pulseSpeed + userData.pulsePhase) * 0.3;
+                    orb.scale.set(pulseFactor, pulseFactor, pulseFactor);
+                });
+            }
+
+            // Sao xoay theo
+            if (stars && group) {
+                stars.rotation.y = group.rotation.y * 0.2;
+            }
+
+            if (renderer && scene && camera) {
+                // Animate individual components in the group (Rings and Shells)
+                if (group) {
+                    group.children.forEach(child => {
+                        if (child.userData) {
+                            if (child.userData.rotSpeedX) child.rotation.x += child.userData.rotSpeedX;
+                            if (child.userData.rotSpeedY) child.rotation.y += child.userData.rotSpeedY;
+                            if (child.userData.rotSpeedZ) child.rotation.z += child.userData.rotSpeedZ;
+                        }
+                    });
+                }
+
+                renderer.render(scene, camera);
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
     </script>
-
 </body>
+
 </html>

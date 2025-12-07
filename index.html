@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>🌌 Web Nice - Bộ Sưu Tập Trải Nghiệm Web</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Theme Colors -->
+    <meta name="theme-color" content="#ff00ff">
+    <meta name="msapplication-TileColor" content="#05060a">
+    <meta name="msapplication-navbutton-color" content="#ff00ff">
+
+    <!-- iOS PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Web Nice">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- iOS Touch Icons -->
+    <link rel="apple-touch-icon" href="icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-152x152.png">
+
+    <!-- Standard Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-72x72.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-72x72.png">
+
+    <!-- Windows Tile -->
+    <meta name="msapplication-TileImage" content="icons/icon-144x144.png">
+    <meta name="msapplication-config" content="browserconfig.xml">
+
+    <!-- SEO and Description -->
+    <meta name="description" content="Bộ sưu tập các trang web tương tác với hiệu ứng đẹp mắt - Web Nice">
+    <meta name="keywords" content="web nice, interactive, particles, 3D, webcam, effects">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Web Nice - Bộ Sưu Tập Trải Nghiệm Web">
+    <meta property="og:description" content="Khám phá các trang web tương tác với hiệu ứng đẹp mắt">
+    <meta property="og:type" content="website">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #05060a;
+            --bg-secondary: #0a0015;
+            --accent-cyan: #00ffff;
+            --accent-magenta: #ff00ff;
+            --accent-yellow: #ffff00;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow-x: hidden;
+            background: var(--bg-primary);
+            font-family: 'Inter', sans-serif;
+            color: white;
+        }
+
+        /* Animated Background */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Gradient Overlay */
+        .gradient-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(255, 0, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(0, 255, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(255, 255, 0, 0.03) 0%, transparent 40%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
+            background: linear-gradient(135deg,
+                    var(--accent-magenta) 0%,
+                    var(--accent-cyan) 50%,
+                    var(--accent-yellow) 100%);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-shift 4s ease infinite;
+            letter-spacing: 0.1em;
+            text-shadow: 0 0 60px rgba(255, 0, 255, 0.5);
+        }
+
+        .tagline {
+            margin-top: 16px;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+        }
+
+        .description {
+            max-width: 600px;
+            margin-top: 24px;
+            font-size: 1rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+        }
+
+        @keyframes gradient-shift {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            max-width: 1200px;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        /* Card Styles */
+        .card {
+            position: relative;
+            background: linear-gradient(135deg, var(--glass), rgba(255, 255, 255, 0.01));
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 32px 28px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            text-decoration: none;
+            display: block;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--card-accent, var(--accent-cyan)), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--card-accent, var(--accent-cyan)) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: var(--card-accent, var(--accent-cyan));
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.4),
+                0 0 40px rgba(var(--card-rgb, 0, 255, 255), 0.15);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover::after {
+            opacity: 0.03;
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 12px;
+            letter-spacing: 0.05em;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.55);
+            line-height: 1.6;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: var(--card-accent, var(--accent-cyan));
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Card Variants */
+        .card.cyan {
+            --card-accent: #00ffff;
+            --card-rgb: 0, 255, 255;
+        }
+
+        .card.magenta {
+            --card-accent: #ff00ff;
+            --card-rgb: 255, 0, 255;
+        }
+
+        .card.yellow {
+            --card-accent: #ffff00;
+            --card-rgb: 255, 255, 0;
+        }
+
+        .card.green {
+            --card-accent: #00ff88;
+            --card-rgb: 0, 255, 136;
+        }
+
+        .card.orange {
+            --card-accent: #ff8800;
+            --card-rgb: 255, 136, 0;
+        }
+
+        .card.purple {
+            --card-accent: #aa77ff;
+            --card-rgb: 170, 119, 255;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 80px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.85rem;
+        }
+
+        .footer a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: var(--accent-magenta);
+        }
+
+        /* Stats Section */
+        .stats {
+            display: flex;
+            gap: 48px;
+            margin-top: 40px;
+            margin-bottom: 60px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                gap: 32px;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+
+        /* Scroll indicator */
+        .scroll-indicator {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        .scroll-indicator::after {
+            content: '↓';
+            font-size: 1.2rem;
+            margin-top: 8px;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+                opacity: 0.4;
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(10px);
+                opacity: 1;
+            }
+        }
+
+        /* Glowing particles on hover */
+        .particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100;
+            animation: float-away 1s ease-out forwards;
+        }
+
+        @keyframes float-away {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(0) translateY(-50px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div class="gradient-overlay"></div>
+
+    <div class="container">
+        <header class="header">
+            <h1 class="logo">WEB NICE</h1>
+            <p class="tagline">Bộ sưu tập trải nghiệm</p>
+            <p class="description">
+                Khám phá các trang web tương tác với hiệu ứng đẹp mắt,
+                từ particle systems đến điều khiển bằng cử chỉ tay.
+                Mỗi trang là một trải nghiệm độc đáo!
+            </p>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number">11</div>
+                    <div class="stat-label">Trải nghiệm</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">∞</div>
+                    <div class="stat-label">Khả năng</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Tương tác</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="cards-grid">
+            <a href="G.html" class="card cyan">
+                <span class="card-badge">Interactive</span>
+                <span class="card-icon">✨</span>
+                <h2 class="card-title">AMAZE</h2>
+                <p class="card-desc">Hệ thống hạt tương tác với pháo hoa, âm thanh. Di chuột và nhấp để trải nghiệm.</p>
+            </a>
+
+            <a href="GAIS.html" class="card green">
+                <span class="card-badge">Classic</span>
+                <span class="card-icon">🔢</span>
+                <h2 class="card-title">Matrix Rain</h2>
+                <p class="card-desc">Hiệu ứng mưa ký tự cổ điển Matrix với các ký tự tiếng Việt độc đáo.</p>
+            </a>
+
+            <a href="Claude.html" class="card magenta">
+                <span class="card-badge">Hand Control</span>
+                <span class="card-icon">🌌</span>
+                <h2 class="card-title">HYPER CORE</h2>
+                <p class="card-desc">Siêu vật thể vũ trụ 3D điều khiển bằng cử chỉ tay qua webcam.</p>
+            </a>
+
+            <a href="Gwebcam.html" class="card yellow">
+                <span class="card-badge">Webcam</span>
+                <span class="card-icon">📷</span>
+                <h2 class="card-title">Nebula Mirror</h2>
+                <p class="card-desc">Trải nghiệm webcam tương tác với hiệu ứng nebula và particles.</p>
+            </a>
+
+            <a href="ChatGPT.html" class="card purple">
+                <span class="card-badge">AI Theme</span>
+                <span class="card-icon">🤖</span>
+                <h2 class="card-title">ChatGPT</h2>
+                <p class="card-desc">Trang trải nghiệm với theme ChatGPT và hiệu ứng đặc biệt.</p>
+            </a>
+
+            <a href="GS.html" class="card cyan">
+                <span class="card-badge">Special</span>
+                <span class="card-icon">🎭</span>
+                <h2 class="card-title">GS Experience</h2>
+                <p class="card-desc">Trải nghiệm web động với các hiệu ứng và tương tác độc đáo.</p>
+            </a>
+
+            <a href="Z.html" class="card orange">
+                <span class="card-badge">Dynamic</span>
+                <span class="card-icon">⚡</span>
+                <h2 class="card-title">Z Effect</h2>
+                <p class="card-desc">Hiệu ứng Z với animation mượt mà và thiết kế hiện đại.</p>
+            </a>
+
+            <a href="ds.html" class="card green">
+                <span class="card-badge">Visual</span>
+                <span class="card-icon">🎨</span>
+                <h2 class="card-title">DS Design</h2>
+                <p class="card-desc">Trải nghiệm thiết kế với các yếu tố visual độc đáo.</p>
+            </a>
+
+            <a href="gork.html" class="card magenta">
+                <span class="card-badge">Creative</span>
+                <span class="card-icon">🔮</span>
+                <h2 class="card-title">Gork</h2>
+                <p class="card-desc">Trang sáng tạo với các hiệu ứng hoạt hình ấn tượng.</p>
+            </a>
+
+            <a href="manus.html" class="card yellow">
+                <span class="card-badge">Premium</span>
+                <span class="card-icon">💎</span>
+                <h2 class="card-title">Manus</h2>
+                <p class="card-desc">Trải nghiệm cao cấp với thiết kế tinh tế và hiệu ứng mượt.</p>
+            </a>
+
+            <a href="perplexity.html" class="card purple">
+                <span class="card-badge">Modern</span>
+                <span class="card-icon">🔍</span>
+                <h2 class="card-title">Perplexity</h2>
+                <p class="card-desc">Giao diện hiện đại với các yếu tố tìm kiếm và khám phá.</p>
+            </a>
+        </div>
+
+        <footer class="footer">
+            <p>Made with 💜 using HTML, CSS & JavaScript</p>
+            <p style="margin-top: 8px;">Di chuột qua các thẻ để xem hiệu ứng • Nhấp để khám phá</p>
+        </footer>
+    </div>
+
+    <div class="scroll-indicator">CUỘN XUỐNG</div>
+
+    <script>
+        // Animated starfield background
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let w = canvas.width = window.innerWidth;
+        let h = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        });
+
+        // Stars
+        class Star {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * w;
+                this.y = Math.random() * h;
+                this.z = Math.random() * 1000;
+                this.size = Math.random() * 2;
+                this.speed = 0.1 + Math.random() * 0.3;
+                this.hue = Math.random() * 60 + 180; // Cyan to magenta range
+            }
+
+            update() {
+                this.z -= this.speed;
+                if (this.z <= 0) {
+                    this.reset();
+                    this.z = 1000;
+                }
+            }
+
+            draw() {
+                const scale = 1000 / (1000 + this.z);
+                const x = (this.x - w / 2) * scale + w / 2;
+                const y = (this.y - h / 2) * scale + h / 2;
+                const size = this.size * scale;
+                const alpha = (1 - this.z / 1000) * 0.8;
+
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${this.hue}, 100%, 70%, ${alpha})`;
+                ctx.fill();
+            }
+        }
+
+        const stars = Array.from({ length: 200 }, () => new Star());
+
+        // Nebula effect
+        let nebulaHue = 0;
+
+        function drawNebula() {
+            nebulaHue += 0.1;
+
+            const gradient = ctx.createRadialGradient(
+                w * 0.3, h * 0.3, 0,
+                w * 0.3, h * 0.3, w * 0.5
+            );
+            gradient.addColorStop(0, `hsla(${nebulaHue % 360}, 100%, 50%, 0.02)`);
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, w, h);
+
+            const gradient2 = ctx.createRadialGradient(
+                w * 0.7, h * 0.7, 0,
+                w * 0.7, h * 0.7, w * 0.4
+            );
+            gradient2.addColorStop(0, `hsla(${(nebulaHue + 180) % 360}, 100%, 50%, 0.02)`);
+            gradient2.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient2;
+            ctx.fillRect(0, 0, w, h);
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(5, 6, 10, 0.3)';
+            ctx.fillRect(0, 0, w, h);
+
+            drawNebula();
+
+            stars.forEach(star => {
+                star.update();
+                star.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // Hide scroll indicator when scrolled
+        const scrollIndicator = document.querySelector('.scroll-indicator');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                scrollIndicator.style.opacity = '0';
+            } else {
+                scrollIndicator.style.opacity = '1';
+            }
+        });
+
+        // Particle effect on card hover
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                if (Math.random() > 0.7) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = e.clientX + 'px';
+                    particle.style.top = e.clientY + 'px';
+                    particle.style.background = getComputedStyle(card).getPropertyValue('--card-accent');
+                    document.body.appendChild(particle);
+
+                    setTimeout(() => particle.remove(), 1000);
+                }
+            });
+        });
+
+        // Smooth scroll for better UX
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then((registration) => {
+                        console.log('SW registered:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('SW registration failed:', error);
+                    });
+            });
+        }
+
+        // Detect standalone mode (PWA)
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+            window.navigator.standalone === true ||
+            document.referrer.includes('android-app://');
+
+        if (isStandalone) {
+            document.body.classList.add('pwa-mode');
+            console.log('Running in PWA standalone mode');
+        }
+
+        // Prevent pull-to-refresh on mobile (smoother app experience)
+        document.body.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+
+    <style>
+        /* PWA Safe Area Support for iOS notch/status bar */
+        @supports (padding-top: env(safe-area-inset-top)) {
+            .container {
+                padding-top: calc(40px + env(safe-area-inset-top));
+                padding-bottom: calc(40px + env(safe-area-inset-bottom));
+                padding-left: calc(20px + env(safe-area-inset-left));
+                padding-right: calc(20px + env(safe-area-inset-right));
+            }
+        }
+
+        /* PWA Mode specific styles */
+        .pwa-mode .scroll-indicator {
+            display: none;
+        }
+    </style>
+</body>
+
+</html>

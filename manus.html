@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Hyper Core - 3D Hand Control System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1428 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #e0e6ff;
+        }
+
+        /* === CANVAS CONTAINER === */
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #canvas3d {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+
+        /* === LOADING SCREEN === */
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00ffcc;
+            font-size: 20px;
+            z-index: 30;
+            pointer-events: none;
+            text-align: center;
+            background: rgba(10, 14, 39, 0.95);
+            padding: 40px 50px;
+            border-radius: 20px;
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 40px rgba(0, 255, 204, 0.4), inset 0 0 20px rgba(0, 255, 204, 0.1);
+            backdrop-filter: blur(10px);
+            animation: pulseLoad 2s ease-in-out infinite;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        #loading small {
+            display: block;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #7dd3fc;
+            opacity: 0.8;
+        }
+
+        @keyframes pulseLoad {
+            0%, 100% { box-shadow: 0 0 40px rgba(0, 255, 204, 0.4), inset 0 0 20px rgba(0, 255, 204, 0.1); }
+            50% { box-shadow: 0 0 60px rgba(0, 255, 204, 0.6), inset 0 0 30px rgba(0, 255, 204, 0.2); }
+        }
+
+        /* === HEADER === */
+        #header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            padding: 25px 40px;
+            background: linear-gradient(180deg, rgba(10, 14, 39, 0.9) 0%, rgba(10, 14, 39, 0.6) 100%);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 255, 204, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00ffcc 0%, #0099ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            color: #7dd3fc;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        .header-info {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .info-item {
+            text-align: right;
+            font-size: 12px;
+            color: #7dd3fc;
+        }
+
+        .info-value {
+            font-size: 16px;
+            color: #00ffcc;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        /* === HUD WRAPPER === */
+        #hud-wrapper {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            z-index: 15;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            pointer-events: auto;
+        }
+
+        /* === GUIDE BOX === */
+        .guide-box {
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, rgba(0, 20, 40, 0.95) 0%, rgba(10, 30, 50, 0.9) 100%);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            color: #e0e6ff;
+            padding: 20px 25px;
+            border-radius: 15px;
+            font-size: 13px;
+            width: 240px;
+            text-align: right;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 255, 204, 0.1);
+            line-height: 1.8;
+            animation: slideInRight 0.6s ease-out;
+        }
+
+        .guide-box div {
+            margin: 8px 0;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .guide-box b {
+            color: #00ffcc;
+            font-weight: 600;
+        }
+
+        .guide-box .emoji {
+            font-size: 18px;
+            display: inline-block;
+        }
+
+        .guide-hint {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(0, 255, 204, 0.2);
+            color: #7dd3fc;
+            font-style: italic;
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* === CAMERA BOX === */
+        .cam-box {
+            position: relative;
+            width: 180px;
+            height: 135px;
+            border: 2px solid #00ffcc;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.4), inset 0 0 20px rgba(0, 255, 204, 0.05);
+            transform: scaleX(-1);
+            animation: slideInRight 0.8s ease-out 0.2s both;
+        }
+
+        .cam-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 30%, rgba(0, 255, 204, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .input_video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .output_canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* === STATS PANEL === */
+        #stats-panel {
+            position: absolute;
+            top: 100px;
+            left: 30px;
+            z-index: 15;
+            background: linear-gradient(135deg, rgba(0, 20, 40, 0.95) 0%, rgba(10, 30, 50, 0.9) 100%);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            color: #e0e6ff;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 12px;
+            width: 220px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 255, 204, 0.1);
+            animation: slideInLeft 0.6s ease-out;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 255, 204, 0.1);
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #7dd3fc;
+        }
+
+        .stat-value {
+            color: #00ffcc;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* === MOBILE RESPONSIVE === */
+        @media (max-width: 768px) {
+            #header {
+                padding: 15px 20px;
+            }
+
+            .header-title {
+                font-size: 20px;
+                letter-spacing: 1px;
+            }
+
+            .header-info {
+                gap: 15px;
+                font-size: 10px;
+            }
+
+            .cam-box {
+                width: 140px;
+                height: 105px;
+            }
+
+            .guide-box {
+                width: 180px;
+                padding: 15px 18px;
+                font-size: 11px;
+            }
+
+            #stats-panel {
+                display: none;
+            }
+
+            #hud-wrapper {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #header {
+                padding: 12px 15px;
+            }
+
+            .header-title {
+                font-size: 16px;
+                gap: 8px;
+            }
+
+            .header-info {
+                display: none;
+            }
+
+            .cam-box {
+                width: 120px;
+                height: 90px;
+            }
+
+            .guide-box {
+                width: 150px;
+                padding: 12px 15px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- HEADER -->
+    <div id="header">
+        <div>
+            <div class="header-title">
+                <span>⚡</span>
+                HYPER CORE
+            </div>
+            <div class="header-subtitle">3D Hand Control System</div>
+        </div>
+        <div class="header-info">
+            <div class="info-item">
+                <div class="stat-label">HAND DETECTED</div>
+                <div class="info-value" id="hand-status">—</div>
+            </div>
+            <div class="info-item">
+                <div class="stat-label">SCALE</div>
+                <div class="info-value" id="scale-display">1.0x</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADING SCREEN -->
+    <div id="loading">
+        🚀 Khởi động Hyper Core...<br>
+        <small>Vui lòng chờ & Cho phép Camera</small>
+    </div>
+
+    <!-- CANVAS CONTAINER -->
+    <div id="canvas-container">
+        <canvas id="canvas1"></canvas>
+        <canvas id="canvas3d"></canvas>
+    </div>
+
+    <!-- STATS PANEL (LEFT) -->
+    <div id="stats-panel">
+        <div style="color: #00ffcc; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">
+            System Status
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">FPS</span>
+            <span class="stat-value" id="fps-counter">60</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Rotation X</span>
+            <span class="stat-value" id="rot-x">0.0°</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Rotation Y</span>
+            <span class="stat-value" id="rot-y">0.0°</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Scale</span>
+            <span class="stat-value" id="scale-stat">1.0x</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Hand Distance</span>
+            <span class="stat-value" id="hand-dist">—</span>
+        </div>
+    </div>
+
+    <!-- HUD WRAPPER (RIGHT) -->
+    <div id="hud-wrapper">
+        <div class="guide-box">
+            <div>
+                <span class="emoji">🖐</span>
+                <div><b>Mở tay:</b> Phóng to</div>
+            </div>
+            <div>
+                <span class="emoji">✊</span>
+                <div><b>Nắm tay:</b> Thu nhỏ</div>
+            </div>
+            <div>
+                <span class="emoji">👋</span>
+                <div><b>Di chuyển:</b> Xoay camera</div>
+            </div>
+            <div class="guide-hint">
+                📍 Đặt tay vào khung bên dưới
+            </div>
+        </div>
+
+        <div class="cam-box">
+            <video class="input_video" playsinline webkit-playsinline muted autoplay></video>
+            <canvas class="output_canvas"></canvas>
+        </div>
+    </div>
+
+    <!-- LIBRARIES -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <script>
+        // === PERFORMANCE MONITORING ===
+        let frameCount = 0;
+        let lastTime = performance.now();
+        let fps = 60;
+
+        function updateFPS() {
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime - lastTime >= 1000) {
+                fps = frameCount;
+                document.getElementById('fps-counter').textContent = fps;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+        }
+
+        // === THREE.JS SETUP ===
+        const container = document.getElementById('canvas-container');
+        const canvas3d = document.getElementById('canvas3d');
+        const loadingDiv = document.getElementById('loading');
+
+        let scene, camera, renderer, group, outerMesh, innerMesh, stars;
+
+        function init3D() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.0015);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 3000);
+            camera.position.z = 10;
+
+            renderer = new THREE.WebGLRenderer({ canvas: canvas3d, antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+
+            // === LIGHTING - DRAMATIC & CINEMATIC ===
+            const ambientLight = new THREE.AmbientLight(0x1a2a4a, 0.4);
+            scene.add(ambientLight);
+
+            const pointLight1 = new THREE.PointLight(0x00f2ff, 3, 150);
+            pointLight1.position.set(15, 15, 15);
+            pointLight1.castShadow = true;
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0xbd00ff, 2.5, 150);
+            pointLight2.position.set(-15, -15, 15);
+            scene.add(pointLight2);
+
+            const pointLight3 = new THREE.PointLight(0xff00aa, 1.5, 100);
+            pointLight3.position.set(0, 20, -10);
+            scene.add(pointLight3);
+
+            const coreLight = new THREE.PointLight(0xffffff, 1.5, 60);
+            coreLight.position.set(0, 0, 0);
+            scene.add(coreLight);
+
+            // === MAIN GROUP ===
+            group = new THREE.Group();
+            scene.add(group);
+
+            // === CORE GEOMETRY ===
+            const coreGeo = new THREE.IcosahedronGeometry(1.2, 4);
+            const coreMat = new THREE.MeshPhongMaterial({
+                color: 0xffffff,
+                wireframe: false,
+                transparent: true,
+                opacity: 0.9,
+                emissive: 0x00ffcc,
+                emissiveIntensity: 0.3,
+                shininess: 100
+            });
+            innerMesh = new THREE.Mesh(coreGeo, coreMat);
+            group.add(innerMesh);
+
+            // === GLOW LAYERS ===
+            const glowGeo1 = new THREE.IcosahedronGeometry(1.0, 4);
+            const glowMat1 = new THREE.MeshBasicMaterial({
+                color: 0x00f2ff,
+                transparent: true,
+                opacity: 0.15,
+                blending: THREE.AdditiveBlending
+            });
+            const glowMesh1 = new THREE.Mesh(glowGeo1, glowMat1);
+            group.add(glowMesh1);
+
+            const glowGeo2 = new THREE.IcosahedronGeometry(0.7, 3);
+            const glowMat2 = new THREE.MeshBasicMaterial({
+                color: 0xbd00ff,
+                transparent: true,
+                opacity: 0.1,
+                blending: THREE.AdditiveBlending
+            });
+            const glowMesh2 = new THREE.Mesh(glowGeo2, glowMat2);
+            group.add(glowMesh2);
+
+            // === OUTER SHELL ===
+            const shellGeo = new THREE.IcosahedronGeometry(3.0, 2);
+            const shellMat = new THREE.MeshPhongMaterial({
+                color: 0x001a33,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.6,
+                emissive: 0x00f2ff,
+                emissiveIntensity: 0.15,
+                side: THREE.DoubleSide,
+                shininess: 50
+            });
+            outerMesh = new THREE.Mesh(shellGeo, shellMat);
+            group.add(outerMesh);
+
+            // === RING SYSTEM - ENHANCED ===
+            const ringCount = 6;
+            for (let i = 0; i < ringCount; i++) {
+                const radius = 4.0 + i * 1.0;
+                const tube = 0.08 + i * 0.03;
+                const ringGeo = new THREE.TorusGeometry(radius, tube, 24, 300);
+                
+                const colors = [0x00f2ff, 0xbd00ff, 0xff00aa, 0x00ffcc, 0x0099ff, 0xff0099];
+                const emissives = [0x002244, 0x440022, 0x440011, 0x003333, 0x001144, 0x330011];
+                
+                const ringMat = new THREE.MeshPhongMaterial({
+                    color: colors[i % colors.length],
+                    emissive: emissives[i % emissives.length],
+                    transparent: true,
+                    opacity: 0.7 - i * 0.08,
+                    shininess: 60
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+
+                ring.rotation.x = Math.random() * Math.PI;
+                ring.rotation.y = Math.random() * Math.PI;
+                ring.rotation.z = Math.random() * Math.PI * 0.5;
+
+                ring.userData = {
+                    rotSpeedX: (Math.random() - 0.5) * 0.015,
+                    rotSpeedY: (Math.random() - 0.5) * 0.015,
+                    rotSpeedZ: (Math.random() - 0.5) * 0.015,
+                    baseRotX: ring.rotation.x,
+                    baseRotY: ring.rotation.y,
+                    baseRotZ: ring.rotation.z
+                };
+
+                group.add(ring);
+            }
+
+            // === STARFIELD - MASSIVE ===
+            const starGeo = new THREE.BufferGeometry();
+            const starCount = 5000;
+            const starPos = new Float32Array(starCount * 3);
+            const starColors = new Float32Array(starCount * 3);
+            
+            for (let i = 0; i < starCount * 3; i += 3) {
+                starPos[i] = (Math.random() - 0.5) * 300;
+                starPos[i + 1] = (Math.random() - 0.5) * 300;
+                starPos[i + 2] = (Math.random() - 0.5) * 300;
+                
+                const colorChoice = Math.random();
+                if (colorChoice < 0.5) {
+                    starColors[i] = 1; starColors[i + 1] = 1; starColors[i + 2] = 1;
+                } else if (colorChoice < 0.75) {
+                    starColors[i] = 0; starColors[i + 1] = 1; starColors[i + 2] = 1;
+                } else {
+                    starColors[i] = 1; starColors[i + 1] = 0; starColors[i + 2] = 1;
+                }
+            }
+            
+            starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+            starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+            
+            stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
+                size: 0.3,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending,
+                vertexColors: true
+            }));
+            scene.add(stars);
+        }
+
+        init3D();
+
+        // === MEDIAPIPE SETUP ===
+        const videoElement = document.querySelector('.input_video');
+        const canvasElement = document.querySelector('.output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+
+        let handDetected = false;
+        let handDistance = 0;
+
+        function onResults(results) {
+            loadingDiv.style.display = 'none';
+
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                handDetected = true;
+
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00ffcc', lineWidth: 2 });
+                drawLandmarks(canvasCtx, landmarks, { color: '#ff00cc', lineWidth: 1, radius: 2 });
+
+                const wrist = landmarks[0];
+                const middleTip = landmarks[12];
+
+                handDistance = Math.sqrt(
+                    Math.pow(middleTip.x - wrist.x, 2) + Math.pow(middleTip.y - wrist.y, 2)
+                );
+
+                let openness = (handDistance - 0.1) * 5;
+                if (openness < 0.3) openness = 0.3;
+                if (openness > 2.5) openness = 2.5;
+                targetScale = openness;
+
+                const palmX = landmarks[9].x;
+                const palmY = landmarks[9].y;
+                const sensitivity = 6;
+
+                targetRotY += (palmX - lastX) * -sensitivity;
+                targetRotX += (palmY - lastY) * sensitivity;
+
+                lastX = palmX;
+                lastY = palmY;
+
+                document.getElementById('hand-status').textContent = '✓ ACTIVE';
+                document.getElementById('hand-dist').textContent = (handDistance * 100).toFixed(1) + ' cm';
+            } else {
+                handDetected = false;
+                targetScale = 1;
+                targetRotY += 0.001;
+                document.getElementById('hand-status').textContent = '✗ WAITING';
+                document.getElementById('hand-dist').textContent = '—';
+            }
+
+            canvasCtx.restore();
+        }
+
+        const hands = new Hands({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            }
+        });
+
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 0,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+        hands.onResults(onResults);
+
+        const cameraUtils = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({ image: videoElement });
+            },
+            width: 480,
+            height: 640
+        });
+
+        cameraUtils.start().catch(err => {
+            loadingDiv.innerHTML = "❌ Lỗi Camera: " + err + "<br>Hãy thử mở bằng Safari và chọn HTTPS.";
+        });
+
+        // === CONTROL VARIABLES ===
+        let targetScale = 1;
+        let currentScale = 1;
+        let targetRotX = 0, targetRotY = 0;
+        let lastX = 0.5, lastY = 0.5;
+
+        // === ANIMATION LOOP ===
+        function animate() {
+            requestAnimationFrame(animate);
+            updateFPS();
+
+            currentScale += (targetScale - currentScale) * 0.08;
+
+            if (group) {
+                group.scale.set(currentScale, currentScale, currentScale);
+                group.rotation.y += (targetRotY - group.rotation.y) * 0.08;
+                group.rotation.x += (targetRotX - group.rotation.x) * 0.08;
+            }
+
+            // === AUTO ROTATION ===
+            if (outerMesh) {
+                outerMesh.rotation.z -= 0.008;
+                outerMesh.rotation.y -= 0.003;
+            }
+            if (innerMesh) {
+                innerMesh.rotation.x += 0.015;
+                innerMesh.rotation.y += 0.008;
+            }
+
+            // === STARFIELD ROTATION ===
+            if (stars && group) {
+                stars.rotation.y = group.rotation.y * 0.15;
+                stars.rotation.x = group.rotation.x * 0.1;
+            }
+
+            // === RING ANIMATIONS ===
+            if (group) {
+                group.children.forEach(child => {
+                    if (child.userData && child.userData.rotSpeedX) {
+                        child.rotation.x += child.userData.rotSpeedX;
+                        child.rotation.y += child.userData.rotSpeedY;
+                        child.rotation.z += child.userData.rotSpeedZ;
+                    }
+                });
+            }
+
+            // === UPDATE STATS ===
+            document.getElementById('scale-display').textContent = currentScale.toFixed(2) + 'x';
+            document.getElementById('scale-stat').textContent = currentScale.toFixed(2) + 'x';
+            document.getElementById('rot-x').textContent = (group.rotation.x * 180 / Math.PI).toFixed(1) + '°';
+            document.getElementById('rot-y').textContent = (group.rotation.y * 180 / Math.PI).toFixed(1) + '°';
+
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
+        }
+
+        // === WINDOW RESIZE ===
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+
+</html>
