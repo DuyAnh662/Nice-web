@@ -3,10 +3,10 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✨ Vũ Trụ Kỳ Diệu ✨</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🌌 HYPER CORE - Vũ Trụ Hùng Vĩ 🌌</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
         * {
             margin: 0;
@@ -15,165 +15,106 @@
         }
 
         body {
-            min-height: 100vh;
-            background: #000;
-            overflow-x: hidden;
-            font-family: 'Poppins', sans-serif;
+            overflow: hidden;
+            background: radial-gradient(ellipse at center, #0a0015 0%, #000000 100%);
+            font-family: 'Orbitron', sans-serif;
         }
 
-        /* Starfield Background */
-        .starfield {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-        }
-
-        .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle var(--duration) ease-in-out infinite;
-        }
-
-        @keyframes twinkle {
-
-            0%,
-            100% {
-                opacity: 0.3;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 1;
-                transform: scale(1.2);
-            }
-        }
-
-        /* Aurora Effect */
-        .aurora {
+        #canvas-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: 1;
-            opacity: 0.4;
-            filter: blur(100px);
         }
 
-        .aurora-layer {
+        #canvas3d {
             position: absolute;
-            width: 200%;
-            height: 200%;
-            animation: aurora-move 20s ease-in-out infinite alternate;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
 
-        .aurora-layer:nth-child(1) {
-            background: radial-gradient(ellipse at 20% 50%, #ff006620 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 50%, #7000ff20 0%, transparent 50%);
-            animation-delay: 0s;
+        /* Cosmic Overlay Glow */
+        .cosmic-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            background:
+                radial-gradient(ellipse at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
         }
 
-        .aurora-layer:nth-child(2) {
-            background: radial-gradient(ellipse at 50% 20%, #00ff8820 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 80%, #0066ff20 0%, transparent 50%);
-            animation-delay: -5s;
-        }
-
-        .aurora-layer:nth-child(3) {
-            background: radial-gradient(ellipse at 30% 30%, #ff00aa20 0%, transparent 40%),
-                radial-gradient(ellipse at 70% 70%, #00ffff20 0%, transparent 40%);
-            animation-delay: -10s;
-        }
-
-        @keyframes aurora-move {
-            0% {
-                transform: translate(-25%, -25%) rotate(0deg);
-            }
-
-            100% {
-                transform: translate(0%, 0%) rotate(10deg);
-            }
-        }
-
-        /* Main Content */
-        .container {
-            position: relative;
+        /* Title */
+        .title-container {
+            position: fixed;
+            top: 5%;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 10;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
+            text-align: center;
+            pointer-events: none;
         }
 
-        /* Glowing Title */
         .main-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(2rem, 8vw, 6rem);
+            font-size: clamp(1.5rem, 5vw, 4rem);
             font-weight: 900;
-            text-align: center;
             background: linear-gradient(135deg,
-                    #ff0080 0%,
-                    #ff8c00 14%,
-                    #ffd700 28%,
-                    #00ff88 42%,
-                    #00bfff 56%,
-                    #8a2be2 70%,
-                    #ff0080 84%,
-                    #ff8c00 100%);
+                    #ff00ff 0%,
+                    #00ffff 25%,
+                    #ffff00 50%,
+                    #ff00ff 75%,
+                    #00ffff 100%);
             background-size: 400% 400%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: gradient-flow 3s ease infinite, float 6s ease-in-out infinite;
-            text-shadow: 0 0 80px rgba(255, 0, 128, 0.5);
-            filter: drop-shadow(0 0 30px rgba(138, 43, 226, 0.5));
+            animation: gradient-shift 3s ease infinite, glow-pulse 2s ease-in-out infinite;
+            text-shadow: 0 0 60px rgba(255, 0, 255, 0.5);
+            letter-spacing: 0.3em;
         }
 
-        @keyframes gradient-flow {
-            0% {
+        @keyframes gradient-shift {
+
+            0%,
+            100% {
                 background-position: 0% 50%;
             }
 
             50% {
                 background-position: 100% 50%;
             }
-
-            100% {
-                background-position: 0% 50%;
-            }
         }
 
-        @keyframes float {
+        @keyframes glow-pulse {
 
             0%,
             100% {
-                transform: translateY(0px) scale(1);
+                filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.5));
             }
 
             50% {
-                transform: translateY(-20px) scale(1.02);
+                filter: drop-shadow(0 0 40px rgba(255, 0, 255, 0.8));
             }
         }
 
-        /* Subtitle */
         .subtitle {
+            font-size: clamp(0.6rem, 1.5vw, 1rem);
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 0.5em;
             margin-top: 1rem;
-            font-size: clamp(1rem, 3vw, 1.5rem);
-            color: rgba(255, 255, 255, 0.7);
-            text-align: center;
-            animation: fadeInUp 1s ease 0.5s both;
+            animation: fadeIn 2s ease 1s both;
         }
 
-        @keyframes fadeInUp {
+        @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(20px);
             }
 
             to {
@@ -182,362 +123,8 @@
             }
         }
 
-        /* 3D Card Container */
-        .card-container {
-            margin-top: 4rem;
-            display: flex;
-            gap: 2rem;
-            flex-wrap: wrap;
-            justify-content: center;
-            perspective: 1000px;
-        }
-
-        .magic-card {
-            width: 280px;
-            height: 380px;
-            position: relative;
-            transform-style: preserve-3d;
-            animation: cardFloat 4s ease-in-out infinite;
-            cursor: pointer;
-        }
-
-        .magic-card:nth-child(1) {
-            animation-delay: 0s;
-        }
-
-        .magic-card:nth-child(2) {
-            animation-delay: 0.5s;
-        }
-
-        .magic-card:nth-child(3) {
-            animation-delay: 1s;
-        }
-
-        @keyframes cardFloat {
-
-            0%,
-            100% {
-                transform: translateY(0) rotateX(0) rotateY(0);
-            }
-
-            25% {
-                transform: translateY(-15px) rotateX(5deg) rotateY(5deg);
-            }
-
-            75% {
-                transform: translateY(-10px) rotateX(-5deg) rotateY(-5deg);
-            }
-        }
-
-        .card-inner {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            border-radius: 24px;
-            background: linear-gradient(135deg,
-                    rgba(255, 255, 255, 0.1) 0%,
-                    rgba(255, 255, 255, 0.05) 100%);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            overflow: hidden;
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
-        .magic-card:hover .card-inner {
-            border-color: rgba(255, 255, 255, 0.5);
-            box-shadow:
-                0 30px 60px rgba(0, 0, 0, 0.5),
-                0 0 60px rgba(138, 43, 226, 0.3),
-                inset 0 0 60px rgba(255, 255, 255, 0.1);
-        }
-
-        .card-glow {
-            position: absolute;
-            width: 150%;
-            height: 150%;
-            top: -25%;
-            left: -25%;
-            background: conic-gradient(from var(--angle, 0deg),
-                    transparent,
-                    var(--glow-color, #ff0080),
-                    transparent,
-                    transparent,
-                    transparent);
-            animation: rotate-glow 4s linear infinite;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .magic-card:hover .card-glow {
-            opacity: 1;
-        }
-
-        @keyframes rotate-glow {
-            to {
-                --angle: 360deg;
-            }
-        }
-
-        @property --angle {
-            syntax: '<angle>';
-            initial-value: 0deg;
-            inherits: false;
-        }
-
-        .card-content {
-            position: relative;
-            z-index: 2;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .card-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-                filter: drop-shadow(0 0 20px currentColor);
-            }
-
-            50% {
-                transform: scale(1.1);
-                filter: drop-shadow(0 0 40px currentColor);
-            }
-        }
-
-        .card-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 0.5rem;
-        }
-
-        .card-desc {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-
-        /* Particle Effect on Click */
-        .particle {
-            position: fixed;
-            pointer-events: none;
-            z-index: 1000;
-            animation: particle-fly 1s ease-out forwards;
-        }
-
-        @keyframes particle-fly {
-            0% {
-                opacity: 1;
-                transform: translate(0, 0) scale(1);
-            }
-
-            100% {
-                opacity: 0;
-                transform: translate(var(--tx), var(--ty)) scale(0);
-            }
-        }
-
-        /* Interactive Orb */
-        .orb-container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 5;
-            pointer-events: none;
-        }
-
-        .orb {
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%,
-                    rgba(255, 255, 255, 0.3),
-                    rgba(138, 43, 226, 0.2) 30%,
-                    rgba(0, 191, 255, 0.1) 60%,
-                    transparent 70%);
-            animation: orb-pulse 4s ease-in-out infinite;
-            filter: blur(40px);
-        }
-
-        @keyframes orb-pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-                opacity: 0.3;
-            }
-
-            50% {
-                transform: scale(1.5);
-                opacity: 0.5;
-            }
-        }
-
-        /* Mouse Trail Effect */
-        .trail {
-            position: fixed;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            mix-blend-mode: screen;
-        }
-
-        /* Shooting Stars */
-        .shooting-star {
-            position: fixed;
-            width: 100px;
-            height: 2px;
-            background: linear-gradient(90deg, white, transparent);
-            animation: shoot 1s ease-out forwards;
-            z-index: 2;
-        }
-
-        @keyframes shoot {
-            0% {
-                transform: translateX(0) translateY(0);
-                opacity: 1;
-            }
-
-            100% {
-                transform: translateX(500px) translateY(300px);
-                opacity: 0;
-            }
-        }
-
-        /* Button */
-        .magic-button {
-            margin-top: 3rem;
-            padding: 1rem 3rem;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: white;
-            background: linear-gradient(135deg, #8a2be2, #ff0080);
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            animation: fadeInUp 1s ease 1s both;
-        }
-
-        .magic-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .magic-button:hover::before {
-            left: 100%;
-        }
-
-        .magic-button:hover {
-            transform: scale(1.1);
-            box-shadow:
-                0 10px 40px rgba(138, 43, 226, 0.5),
-                0 0 60px rgba(255, 0, 128, 0.3);
-        }
-
-        /* Sound Wave */
-        .sound-waves {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            display: flex;
-            gap: 4px;
-            align-items: center;
-            z-index: 100;
-            cursor: pointer;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-        }
-
-        .wave-bar {
-            width: 4px;
-            background: linear-gradient(to top, #ff0080, #8a2be2);
-            border-radius: 2px;
-            animation: wave 0.5s ease-in-out infinite alternate;
-        }
-
-        .wave-bar:nth-child(1) {
-            height: 15px;
-            animation-delay: 0s;
-        }
-
-        .wave-bar:nth-child(2) {
-            height: 25px;
-            animation-delay: 0.1s;
-        }
-
-        .wave-bar:nth-child(3) {
-            height: 20px;
-            animation-delay: 0.2s;
-        }
-
-        .wave-bar:nth-child(4) {
-            height: 30px;
-            animation-delay: 0.3s;
-        }
-
-        .wave-bar:nth-child(5) {
-            height: 18px;
-            animation-delay: 0.4s;
-        }
-
-        @keyframes wave {
-            from {
-                transform: scaleY(1);
-            }
-
-            to {
-                transform: scaleY(0.5);
-            }
-        }
-
-        /* Floating Shapes */
-        .floating-shape {
-            position: fixed;
-            z-index: 3;
-            opacity: 0.5;
-            animation: shape-float 20s linear infinite;
-        }
-
-        @keyframes shape-float {
-            0% {
-                transform: translateY(100vh) rotate(0deg);
-            }
-
-            100% {
-                transform: translateY(-100px) rotate(720deg);
-            }
-        }
-
         /* Loading Screen */
-        .loader {
+        #loading {
             position: fixed;
             top: 0;
             left: 0;
@@ -545,25 +132,52 @@
             height: 100%;
             background: #000;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 10000;
-            transition: opacity 0.5s, visibility 0.5s;
+            z-index: 1000;
+            transition: opacity 1s ease, visibility 1s ease;
         }
 
-        .loader.hidden {
+        #loading.hidden {
             opacity: 0;
             visibility: hidden;
         }
 
         .loader-ring {
-            width: 80px;
-            height: 80px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
+            position: relative;
+        }
+
+        .loader-ring::before,
+        .loader-ring::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .loader-ring::before {
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             border: 4px solid transparent;
-            border-top-color: #ff0080;
-            border-right-color: #8a2be2;
+            border-top-color: #ff00ff;
+            border-right-color: #00ffff;
             animation: spin 1s linear infinite;
+        }
+
+        .loader-ring::after {
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
+            border: 4px solid transparent;
+            border-bottom-color: #ffff00;
+            border-left-color: #ff00ff;
+            animation: spin 0.8s linear infinite reverse;
         }
 
         @keyframes spin {
@@ -572,57 +186,125 @@
             }
         }
 
-        /* Tooltip */
-        .tooltip {
-            position: fixed;
-            padding: 0.5rem 1rem;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            pointer-events: none;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.2s;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .loader-text {
+            color: #00ffff;
+            font-size: 0.9rem;
+            margin-top: 2rem;
+            letter-spacing: 0.3em;
+            animation: pulse 1.5s ease-in-out infinite;
         }
 
-        /* Interactive Ripple */
-        .ripple {
-            position: fixed;
-            border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            pointer-events: none;
-            animation: ripple-expand 1s ease-out forwards;
-            z-index: 100;
-        }
+        @keyframes pulse {
 
-        @keyframes ripple-expand {
-            0% {
-                width: 0;
-                height: 0;
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
                 opacity: 1;
             }
-
-            100% {
-                width: 200px;
-                height: 200px;
-                opacity: 0;
-            }
         }
 
-        /* Responsive */
+        /* HUD Wrapper */
+        #hud-wrapper {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            pointer-events: none;
+        }
+
+        .guide-box {
+            margin-bottom: 15px;
+            background: rgba(0, 10, 30, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-size: 13px;
+            width: 220px;
+            text-align: right;
+            backdrop-filter: blur(10px);
+            box-shadow:
+                0 0 30px rgba(0, 255, 255, 0.1),
+                inset 0 0 30px rgba(0, 255, 255, 0.05);
+        }
+
+        .guide-box div {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .guide-box b {
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .cam-box {
+            position: relative;
+            width: 180px;
+            height: 135px;
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow:
+                0 0 30px rgba(0, 255, 255, 0.2),
+                inset 0 0 20px rgba(0, 255, 255, 0.1);
+            transform: scaleX(-1);
+            pointer-events: auto;
+        }
+
+        .input_video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .output_canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Interactive Info */
+        .info-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 10;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+        }
+
+        /* Mobile Responsive */
         @media (max-width: 768px) {
-            .card-container {
-                flex-direction: column;
-                align-items: center;
+            .cam-box {
+                width: 140px;
+                height: 105px;
             }
 
-            .magic-card {
-                width: 90%;
-                max-width: 300px;
-                height: 350px;
+            .guide-box {
+                width: 180px;
+                font-size: 11px;
+                padding: 12px 15px;
+            }
+
+            .info-panel {
+                display: none;
             }
         }
     </style>
@@ -630,281 +312,626 @@
 
 <body>
     <!-- Loading Screen -->
-    <div class="loader" id="loader">
+    <div id="loading">
         <div class="loader-ring"></div>
+        <div class="loader-text">KHỞI ĐỘNG VŨ TRỤ</div>
     </div>
 
-    <!-- Starfield -->
-    <div class="starfield" id="starfield"></div>
+    <!-- Cosmic Overlay -->
+    <div class="cosmic-overlay"></div>
 
-    <!-- Aurora -->
-    <div class="aurora">
-        <div class="aurora-layer"></div>
-        <div class="aurora-layer"></div>
-        <div class="aurora-layer"></div>
+    <!-- Title -->
+    <div class="title-container">
+        <h1 class="main-title">HYPER CORE</h1>
+        <p class="subtitle">ĐIỀU KHIỂN BẰNG BÀN TAY</p>
     </div>
 
-    <!-- Central Orb -->
-    <div class="orb-container">
-        <div class="orb"></div>
+    <!-- 3D Canvas Container -->
+    <div id="canvas-container">
+        <canvas id="canvas3d"></canvas>
     </div>
 
-    <!-- Main Content -->
-    <div class="container">
-        <h1 class="main-title">✨ Chào Mừng Đến Vũ Trụ ✨</h1>
-        <p class="subtitle">Khám phá thế giới kỳ diệu của ánh sáng và màu sắc</p>
-
-        <div class="card-container">
-            <div class="magic-card" style="--glow-color: #ff0080;">
-                <div class="card-glow"></div>
-                <div class="card-inner">
-                    <div class="card-content">
-                        <div class="card-icon" style="color: #ff0080;">🌌</div>
-                        <h3 class="card-title">Thiên Hà</h3>
-                        <p class="card-desc">Hàng tỷ ngôi sao đang chờ đợi bạn khám phá trong vũ trụ bao la này.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="magic-card" style="--glow-color: #00ff88;">
-                <div class="card-glow"></div>
-                <div class="card-inner">
-                    <div class="card-content">
-                        <div class="card-icon" style="color: #00ff88;">🔮</div>
-                        <h3 class="card-title">Phép Thuật</h3>
-                        <p class="card-desc">Mỗi click chuột là một phép màu đang chờ được khám phá!</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="magic-card" style="--glow-color: #00bfff;">
-                <div class="card-glow"></div>
-                <div class="card-inner">
-                    <div class="card-content">
-                        <div class="card-icon" style="color: #00bfff;">💫</div>
-                        <h3 class="card-title">Ước Mơ</h3>
-                        <p class="card-desc">Biến những ước mơ thành hiện thực với sức mạnh của trí tưởng tượng.</p>
-                    </div>
-                </div>
+    <!-- HUD -->
+    <div id="hud-wrapper">
+        <div class="guide-box">
+            <div>🖐️ <b>Mở tay:</b> Phóng to</div>
+            <div>✊ <b>Nắm tay:</b> Thu nhỏ</div>
+            <div>👋 <b>Di chuyển:</b> Xoay camera</div>
+            <div style="color: rgba(255,255,255,0.4); font-style: italic; margin-top: 10px;">
+                Đặt tay vào khung bên dưới
             </div>
         </div>
-
-        <button class="magic-button" id="magicBtn">✨ Tạo Phép Màu ✨</button>
+        <div class="cam-box">
+            <video class="input_video" playsinline webkit-playsinline muted autoplay></video>
+            <canvas class="output_canvas"></canvas>
+        </div>
     </div>
 
-    <!-- Sound Wave Indicator -->
-    <div class="sound-waves" id="soundToggle" title="Click để bật/tắt nhạc">
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
+    <!-- Info Panel -->
+    <div class="info-panel">
+        FPS: <span id="fps">60</span> |
+        SCALE: <span id="scale-info">1.00</span>
     </div>
 
-    <!-- Tooltip -->
-    <div class="tooltip" id="tooltip"></div>
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
     <script>
-        // Create starfield
-        function createStars() {
-            const starfield = document.getElementById('starfield');
-            for (let i = 0; i < 200; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.width = Math.random() * 3 + 1 + 'px';
-                star.style.height = star.style.width;
-                star.style.setProperty('--duration', Math.random() * 3 + 2 + 's');
-                star.style.animationDelay = Math.random() * 5 + 's';
-                starfield.appendChild(star);
+        // ═══════════════════════════════════════════════════════════════
+        // ██████╗   HYPER CORE - SIÊU VẬT THỂ VŨ TRỤ  █████╗
+        // ═══════════════════════════════════════════════════════════════
+
+        const canvas3d = document.getElementById('canvas3d');
+        const loadingDiv = document.getElementById('loading');
+        const fpsDisplay = document.getElementById('fps');
+        const scaleInfo = document.getElementById('scale-info');
+
+        // Three.js Core
+        let scene, camera, renderer;
+        let hyperCore, particleSystems = [], nebulaClouds = [];
+        let time = 0;
+        let lastTime = performance.now();
+        let frameCount = 0;
+
+        // Control Variables
+        let targetScale = 1, currentScale = 1;
+        let targetRotX = 0, targetRotY = 0;
+        let lastX = 0.5, lastY = 0.5;
+
+        // ═══════════════════════════════════════════════════════════════
+        // █████████████████████  KHỞI TẠO THREE.JS  ████████████████████
+        // ═══════════════════════════════════════════════════════════════
+        function init3D() {
+            // Scene Setup
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000011, 0.008);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 3000);
+            camera.position.z = 25;
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({
+                canvas: canvas3d,
+                antialias: true,
+                alpha: false,
+                powerPreference: "high-performance"
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+
+            // ══════════════════════════════════════════════════════════
+            // ████████████████████  ÁNH SÁNG HÙNG VĨ  ██████████████████
+            // ══════════════════════════════════════════════════════════
+
+            // Core Light - Lõi phát sáng mạnh
+            const coreLight = new THREE.PointLight(0xffffff, 3, 100);
+            coreLight.position.set(0, 0, 0);
+            scene.add(coreLight);
+
+            // Dramatic Spotlights
+            const colors = [0xff00ff, 0x00ffff, 0xffff00, 0xff0088, 0x00ff88];
+            colors.forEach((color, i) => {
+                const angle = (i / colors.length) * Math.PI * 2;
+                const light = new THREE.PointLight(color, 1.5, 80);
+                light.position.set(
+                    Math.cos(angle) * 30,
+                    Math.sin(angle * 2) * 20,
+                    Math.sin(angle) * 30
+                );
+                scene.add(light);
+            });
+
+            // Ambient for subtle fill
+            scene.add(new THREE.AmbientLight(0x111122, 0.3));
+
+            // ══════════════════════════════════════════════════════════
+            // █████████████████████  HYPER CORE  ██████████████████████
+            // ══════════════════════════════════════════════════════════
+
+            hyperCore = new THREE.Group();
+            scene.add(hyperCore);
+
+            // ▓▓▓▓▓▓▓▓▓▓▓▓▓ 1. NĂNG LƯỢNG LÕI - ENERGY CORE ▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+            // Inner Plasma Core
+            const plasmaGeo = new THREE.IcosahedronGeometry(1.2, 4);
+            const plasmaMat = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.95
+            });
+            const plasmaCore = new THREE.Mesh(plasmaGeo, plasmaMat);
+            plasmaCore.userData.type = 'plasma';
+            hyperCore.add(plasmaCore);
+
+            // Energy Field Layers
+            for (let i = 0; i < 4; i++) {
+                const size = 1.5 + i * 0.4;
+                const geo = new THREE.IcosahedronGeometry(size, 2);
+                const mat = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(i * 0.15, 1, 0.6),
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.4 - i * 0.08
+                });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.userData = {
+                    type: 'energy',
+                    rotSpeed: { x: 0.02 - i * 0.003, y: 0.015 - i * 0.002, z: 0.01 }
+                };
+                hyperCore.add(mesh);
+            }
+
+            // ▓▓▓▓▓▓▓▓▓▓▓▓▓ 2. VỎ GIÁP CƠ KHÍ - TECH SHELL ▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+            // Outer Icosahedron Shell
+            const shellGeo = new THREE.IcosahedronGeometry(4, 1);
+            const shellMat = new THREE.MeshPhongMaterial({
+                color: 0x000000,
+                emissive: 0x00ffff,
+                emissiveIntensity: 0.15,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.6,
+                side: THREE.DoubleSide
+            });
+            const outerShell = new THREE.Mesh(shellGeo, shellMat);
+            outerShell.userData = { type: 'shell', rotSpeed: { x: -0.005, y: -0.008, z: 0.003 } };
+            hyperCore.add(outerShell);
+
+            // Secondary Dodecahedron Shell
+            const shell2Geo = new THREE.DodecahedronGeometry(5.5, 0);
+            const shell2Mat = new THREE.MeshPhongMaterial({
+                color: 0x110022,
+                emissive: 0xff00ff,
+                emissiveIntensity: 0.1,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.4
+            });
+            const shell2 = new THREE.Mesh(shell2Geo, shell2Mat);
+            shell2.userData = { type: 'shell2', rotSpeed: { x: 0.003, y: -0.004, z: -0.002 } };
+            hyperCore.add(shell2);
+
+            // ▓▓▓▓▓▓▓▓▓▓▓▓▓ 3. HỆ THỐNG VÒNG XOAY - RING SYSTEM ▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+            const ringConfigs = [
+                { radius: 6, tube: 0.08, color: 0x00ffff, speed: 0.02 },
+                { radius: 7, tube: 0.06, color: 0xff00ff, speed: -0.015 },
+                { radius: 8, tube: 0.1, color: 0xffff00, speed: 0.018 },
+                { radius: 9.5, tube: 0.05, color: 0x00ff88, speed: -0.012 },
+                { radius: 11, tube: 0.12, color: 0xff0088, speed: 0.01 },
+                { radius: 13, tube: 0.04, color: 0x00ffff, speed: -0.008 },
+                { radius: 15, tube: 0.08, color: 0xff00ff, speed: 0.006 }
+            ];
+
+            ringConfigs.forEach((config, i) => {
+                const ringGeo = new THREE.TorusGeometry(config.radius, config.tube, 32, 200);
+                const ringMat = new THREE.MeshPhongMaterial({
+                    color: config.color,
+                    emissive: config.color,
+                    emissiveIntensity: 0.3,
+                    transparent: true,
+                    opacity: 0.7,
+                    side: THREE.DoubleSide
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+
+                // Góc nghiêng ngẫu nhiên nhưng đẹp
+                ring.rotation.x = Math.random() * Math.PI;
+                ring.rotation.y = Math.random() * Math.PI * 0.5;
+
+                ring.userData = {
+                    type: 'ring',
+                    baseRotX: ring.rotation.x,
+                    baseRotY: ring.rotation.y,
+                    speed: config.speed,
+                    wobble: Math.random() * 0.5
+                };
+                hyperCore.add(ring);
+            });
+
+            // ▓▓▓▓▓▓▓▓▓▓▓▓▓ 4. ORBITAL SPHERES - QUỸ ĐẠO CẦU ▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+            const orbitalColors = [0xff00ff, 0x00ffff, 0xffff00, 0x00ff88, 0xff5500];
+            for (let i = 0; i < 12; i++) {
+                const orbitRadius = 10 + Math.random() * 8;
+                const sphereSize = 0.15 + Math.random() * 0.25;
+
+                const sphereGeo = new THREE.SphereGeometry(sphereSize, 16, 16);
+                const sphereMat = new THREE.MeshBasicMaterial({
+                    color: orbitalColors[i % orbitalColors.length],
+                    transparent: true,
+                    opacity: 0.9
+                });
+                const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+
+                sphere.userData = {
+                    type: 'orbital',
+                    orbitRadius: orbitRadius,
+                    orbitSpeed: 0.3 + Math.random() * 0.5,
+                    orbitOffset: Math.random() * Math.PI * 2,
+                    orbitTilt: (Math.random() - 0.5) * Math.PI * 0.8
+                };
+                hyperCore.add(sphere);
+            }
+
+            // ▓▓▓▓▓▓▓▓▓▓▓▓▓ 5. ENERGY BEAMS - TIA NĂNG LƯỢNG ▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+            const beamCount = 8;
+            for (let i = 0; i < beamCount; i++) {
+                const angle = (i / beamCount) * Math.PI * 2;
+
+                const beamGeo = new THREE.CylinderGeometry(0.03, 0.08, 20, 8);
+                const beamMat = new THREE.MeshBasicMaterial({
+                    color: i % 2 === 0 ? 0x00ffff : 0xff00ff,
+                    transparent: true,
+                    opacity: 0.4
+                });
+                const beam = new THREE.Mesh(beamGeo, beamMat);
+
+                beam.rotation.z = angle;
+                beam.rotation.x = Math.PI / 2;
+                beam.position.set(
+                    Math.cos(angle) * 10,
+                    0,
+                    Math.sin(angle) * 10
+                );
+
+                beam.userData = { type: 'beam', angle: angle };
+                hyperCore.add(beam);
+            }
+
+            // ══════════════════════════════════════════════════════════
+            // ████████████████████  STARFIELD VŨ TRỤ  ██████████████████
+            // ══════════════════════════════════════════════════════════
+
+            // Deep Space Stars
+            createStarfield(8000, 300, 0.15, 0xffffff);
+            createStarfield(3000, 400, 0.25, 0x88aaff);
+            createStarfield(1000, 500, 0.4, 0xffaa88);
+
+            // ══════════════════════════════════════════════════════════
+            // ████████████████████  NEBULA CLOUDS  ████████████████████
+            // ══════════════════════════════════════════════════════════
+
+            createNebulaClouds();
+
+            // ══════════════════════════════════════════════════════════
+            // ████████████████████  PARTICLE SYSTEMS  ██████████████████
+            // ══════════════════════════════════════════════════════════
+
+            // Core Energy Particles
+            createParticleSystem(2000, 15, [0x00ffff, 0xff00ff, 0xffff00]);
+
+            // Outer Cosmic Dust
+            createParticleSystem(1500, 40, [0x4444ff, 0xff44ff, 0x44ffff]);
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // █████████████████████  HELPER FUNCTIONS  ████████████████████
+        // ══════════════════════════════════════════════════════════════
+
+        function createStarfield(count, range, size, color) {
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+
+            for (let i = 0; i < count * 3; i += 3) {
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                const r = range * (0.5 + Math.random() * 0.5);
+
+                positions[i] = r * Math.sin(phi) * Math.cos(theta);
+                positions[i + 1] = r * Math.sin(phi) * Math.sin(theta);
+                positions[i + 2] = r * Math.cos(phi);
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const material = new THREE.PointsMaterial({
+                color: color,
+                size: size,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending,
+                sizeAttenuation: true
+            });
+
+            const stars = new THREE.Points(geometry, material);
+            stars.userData = { type: 'starfield' };
+            scene.add(stars);
+        }
+
+        function createNebulaClouds() {
+            const nebulaColors = [0xff00ff, 0x00ffff, 0x4400ff, 0xff0044];
+
+            for (let i = 0; i < 6; i++) {
+                const geometry = new THREE.SphereGeometry(30 + Math.random() * 40, 32, 32);
+                const material = new THREE.MeshBasicMaterial({
+                    color: nebulaColors[i % nebulaColors.length],
+                    transparent: true,
+                    opacity: 0.02,
+                    blending: THREE.AdditiveBlending,
+                    side: THREE.BackSide
+                });
+
+                const nebula = new THREE.Mesh(geometry, material);
+                nebula.position.set(
+                    (Math.random() - 0.5) * 100,
+                    (Math.random() - 0.5) * 100,
+                    (Math.random() - 0.5) * 100 - 50
+                );
+                nebula.userData = {
+                    type: 'nebula',
+                    pulseSpeed: 0.5 + Math.random() * 0.5
+                };
+                scene.add(nebula);
+                nebulaClouds.push(nebula);
             }
         }
 
-        // Create floating shapes
-        function createFloatingShapes() {
-            const shapes = ['◆', '◇', '○', '△', '☆'];
-            const colors = ['#ff0080', '#8a2be2', '#00ff88', '#00bfff', '#ffd700'];
+        function createParticleSystem(count, range, colors) {
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const particleColors = new Float32Array(count * 3);
 
-            setInterval(() => {
-                const shape = document.createElement('div');
-                shape.className = 'floating-shape';
-                shape.textContent = shapes[Math.floor(Math.random() * shapes.length)];
-                shape.style.left = Math.random() * 100 + '%';
-                shape.style.color = colors[Math.floor(Math.random() * colors.length)];
-                shape.style.fontSize = Math.random() * 20 + 10 + 'px';
-                shape.style.animationDuration = Math.random() * 10 + 15 + 's';
-                document.body.appendChild(shape);
+            for (let i = 0; i < count; i++) {
+                const i3 = i * 3;
+                const radius = Math.random() * range;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
 
-                setTimeout(() => shape.remove(), 25000);
-            }, 2000);
-        }
+                positions[i3] = radius * Math.sin(phi) * Math.cos(theta);
+                positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                positions[i3 + 2] = radius * Math.cos(phi);
 
-        // Mouse trail effect
-        let trails = [];
-        const trailColors = ['#ff0080', '#8a2be2', '#00ff88', '#00bfff', '#ffd700'];
-
-        document.addEventListener('mousemove', (e) => {
-            const trail = document.createElement('div');
-            trail.className = 'trail';
-            trail.style.left = e.clientX - 10 + 'px';
-            trail.style.top = e.clientY - 10 + 'px';
-            trail.style.background = `radial-gradient(circle, ${trailColors[Math.floor(Math.random() * trailColors.length)]}, transparent)`;
-            document.body.appendChild(trail);
-
-            trails.push(trail);
-
-            setTimeout(() => {
-                trail.style.transform = 'scale(0)';
-                trail.style.opacity = '0';
-                trail.style.transition = 'all 0.5s ease';
-            }, 50);
-
-            setTimeout(() => {
-                trail.remove();
-                trails.shift();
-            }, 500);
-        });
-
-        // Click particle explosion
-        document.addEventListener('click', (e) => {
-            createRipple(e);
-            createParticles(e);
-        });
-
-        function createRipple(e) {
-            const ripple = document.createElement('div');
-            ripple.className = 'ripple';
-            ripple.style.left = e.clientX - 100 + 'px';
-            ripple.style.top = e.clientY - 100 + 'px';
-            document.body.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 1000);
-        }
-
-        function createParticles(e) {
-            const emojis = ['✨', '⭐', '💫', '🌟', '💖', '🔮', '🎭', '🎪'];
-
-            for (let i = 0; i < 15; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                particle.style.left = e.clientX + 'px';
-                particle.style.top = e.clientY + 'px';
-                particle.style.fontSize = Math.random() * 20 + 15 + 'px';
-
-                const angle = (Math.PI * 2 * i) / 15;
-                const distance = Math.random() * 100 + 50;
-                particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
-                particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
-
-                document.body.appendChild(particle);
-                setTimeout(() => particle.remove(), 1000);
+                const color = new THREE.Color(colors[Math.floor(Math.random() * colors.length)]);
+                particleColors[i3] = color.r;
+                particleColors[i3 + 1] = color.g;
+                particleColors[i3 + 2] = color.b;
             }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.1,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending,
+                vertexColors: true,
+                sizeAttenuation: true
+            });
+
+            const particles = new THREE.Points(geometry, material);
+            particles.userData = {
+                type: 'particles',
+                rotSpeed: { x: 0.001, y: 0.002, z: 0.0005 }
+            };
+            scene.add(particles);
+            particleSystems.push(particles);
         }
 
-        // Shooting stars
-        function createShootingStar() {
-            const star = document.createElement('div');
-            star.className = 'shooting-star';
-            star.style.left = Math.random() * 50 + '%';
-            star.style.top = Math.random() * 30 + '%';
-            star.style.transform = `rotate(${Math.random() * 30 + 30}deg)`;
-            document.body.appendChild(star);
-            setTimeout(() => star.remove(), 1000);
+        // ══════════════════════════════════════════════════════════════
+        // █████████████████████  MEDIAPIPE HANDS  █████████████████████
+        // ══════════════════════════════════════════════════════════════
+
+        const videoElement = document.querySelector('.input_video');
+        const canvasElement = document.querySelector('.output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+
+        function onResults(results) {
+            // Ẩn loading khi đã nhận frame
+            loadingDiv.classList.add('hidden');
+
+            // Vẽ lên canvas mini
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+
+                // Vẽ xương tay neon
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {
+                    color: '#00ffff',
+                    lineWidth: 3
+                });
+                drawLandmarks(canvasCtx, landmarks, {
+                    color: '#ff00ff',
+                    lineWidth: 2,
+                    radius: 4
+                });
+
+                // LOGIC ĐIỀU KHIỂN
+                const wrist = landmarks[0];
+                const middleTip = landmarks[12];
+
+                // Tính khoảng cách (Zoom)
+                const distance = Math.sqrt(
+                    Math.pow(middleTip.x - wrist.x, 2) +
+                    Math.pow(middleTip.y - wrist.y, 2)
+                );
+
+                let openness = (distance - 0.1) * 5;
+                openness = Math.max(0.3, Math.min(2.5, openness));
+                targetScale = openness;
+
+                // Tính vị trí (Xoay)
+                const palmX = landmarks[9].x;
+                const palmY = landmarks[9].y;
+                const sensitivity = 4;
+
+                targetRotY += (palmX - lastX) * -sensitivity;
+                targetRotX += (palmY - lastY) * sensitivity;
+
+                lastX = palmX;
+                lastY = palmY;
+            } else {
+                // Không thấy tay: auto-rotate nhẹ
+                targetScale = 1;
+                targetRotY += 0.003;
+            }
+            canvasCtx.restore();
         }
 
-        setInterval(createShootingStar, 3000);
+        const hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
 
-        // Magic button
-        const magicBtn = document.getElementById('magicBtn');
-        magicBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 0,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
 
-            // Create massive particle explosion
-            for (let j = 0; j < 5; j++) {
-                setTimeout(() => {
-                    for (let i = 0; i < 30; i++) {
-                        const particle = document.createElement('div');
-                        particle.className = 'particle';
-                        particle.textContent = ['✨', '⭐', '💫', '🌟', '💖', '🎆', '🎇', '🌈'][Math.floor(Math.random() * 8)];
+        hands.onResults(onResults);
 
-                        const rect = magicBtn.getBoundingClientRect();
-                        particle.style.left = rect.left + rect.width / 2 + 'px';
-                        particle.style.top = rect.top + 'px';
-                        particle.style.fontSize = Math.random() * 30 + 20 + 'px';
+        const cameraUtils = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({ image: videoElement });
+            },
+            width: 480,
+            height: 640
+        });
 
-                        const angle = (Math.PI * 2 * i) / 30;
-                        const distance = Math.random() * 200 + 100;
-                        particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
-                        particle.style.setProperty('--ty', (Math.sin(angle) * distance - 100) + 'px');
+        cameraUtils.start().catch(err => {
+            console.error('Camera error:', err);
+            loadingDiv.innerHTML = `
+                <div style="color: #ff4444; text-align: center; padding: 20px;">
+                    ❌ LỖI CAMERA<br>
+                    <small style="color: #888;">${err}</small><br>
+                    <small style="color: #666; margin-top: 10px; display: block;">
+                        Hãy cho phép truy cập camera
+                    </small>
+                </div>
+            `;
+        });
 
-                        document.body.appendChild(particle);
-                        setTimeout(() => particle.remove(), 1000);
+        // ══════════════════════════════════════════════════════════════
+        // █████████████████████  ANIMATION LOOP  ██████████████████████
+        // ══════════════════════════════════════════════════════════════
+
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+
+            // FPS Counter
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime - lastTime >= 1000) {
+                fpsDisplay.textContent = frameCount;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+
+            // Lerp để mượt chuyển động
+            currentScale += (targetScale - currentScale) * 0.08;
+            scaleInfo.textContent = currentScale.toFixed(2);
+
+            if (hyperCore) {
+                hyperCore.scale.set(currentScale, currentScale, currentScale);
+                hyperCore.rotation.y += (targetRotY - hyperCore.rotation.y) * 0.05;
+                hyperCore.rotation.x += (targetRotX - hyperCore.rotation.x) * 0.05;
+
+                // Animate từng thành phần
+                hyperCore.children.forEach(child => {
+                    const userData = child.userData;
+
+                    if (userData.type === 'plasma') {
+                        // Nhịp đập lõi năng lượng
+                        const pulse = 1 + Math.sin(time * 3) * 0.1;
+                        child.scale.set(pulse, pulse, pulse);
                     }
-                }, j * 200);
+
+                    if (userData.rotSpeed) {
+                        child.rotation.x += userData.rotSpeed.x;
+                        child.rotation.y += userData.rotSpeed.y;
+                        if (userData.rotSpeed.z) child.rotation.z += userData.rotSpeed.z;
+                    }
+
+                    if (userData.type === 'ring') {
+                        child.rotation.z += userData.speed;
+                        // Wobble effect
+                        child.rotation.x = userData.baseRotX + Math.sin(time + userData.wobble) * 0.05;
+                    }
+
+                    if (userData.type === 'orbital') {
+                        const t = time * userData.orbitSpeed + userData.orbitOffset;
+                        child.position.x = Math.cos(t) * userData.orbitRadius;
+                        child.position.y = Math.sin(t * 0.5) * userData.orbitRadius * 0.3;
+                        child.position.z = Math.sin(t) * userData.orbitRadius;
+
+                        // Nhấp nháy
+                        child.material.opacity = 0.5 + Math.sin(time * 5 + userData.orbitOffset) * 0.4;
+                    }
+
+                    if (userData.type === 'beam') {
+                        // Xoay tia năng lượng
+                        child.rotation.z = userData.angle + time * 0.5;
+                        child.material.opacity = 0.2 + Math.sin(time * 3) * 0.2;
+                    }
+                });
             }
 
-            // Flash effect
-            document.body.style.transition = 'filter 0.1s';
-            document.body.style.filter = 'brightness(2)';
-            setTimeout(() => {
-                document.body.style.filter = 'brightness(1)';
-            }, 100);
-        });
-
-        // Card hover 3D effect
-        document.querySelectorAll('.magic-card').forEach(card => {
-            card.addEventListener('mousemove', (e) => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-
-                const rotateX = (y - centerY) / 10;
-                const rotateY = (centerX - x) / 10;
-
-                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+            // Animate particles
+            particleSystems.forEach(ps => {
+                if (ps.userData.rotSpeed) {
+                    ps.rotation.x += ps.userData.rotSpeed.x;
+                    ps.rotation.y += ps.userData.rotSpeed.y;
+                    ps.rotation.z += ps.userData.rotSpeed.z;
+                }
             });
 
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = '';
+            // Animate nebula clouds
+            nebulaClouds.forEach((nebula, i) => {
+                nebula.material.opacity = 0.015 + Math.sin(time * nebula.userData.pulseSpeed + i) * 0.01;
+                nebula.rotation.y += 0.0005;
             });
+
+            // Starfield subtle rotation theo camera
+            scene.children.forEach(child => {
+                if (child.userData && child.userData.type === 'starfield') {
+                    child.rotation.y = hyperCore.rotation.y * 0.1;
+                    child.rotation.x = hyperCore.rotation.x * 0.05;
+                }
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // █████████████████████  RESIZE HANDLER  ██████████████████████
+        // ══════════════════════════════════════════════════════════════
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Loader
-        window.addEventListener('load', () => {
-            createStars();
-            createFloatingShapes();
+        // ══════════════════════════════════════════════════════════════
+        // █████████████████████  KHỞI ĐỘNG  ████████████████████████████
+        // ══════════════════════════════════════════════════════════════
 
-            setTimeout(() => {
-                document.getElementById('loader').classList.add('hidden');
-            }, 1500);
-        });
+        init3D();
+        animate();
 
-        // Interactive parallax on mouse move
-        document.addEventListener('mousemove', (e) => {
-            const mouseX = e.clientX / window.innerWidth - 0.5;
-            const mouseY = e.clientY / window.innerHeight - 0.5;
-
-            document.querySelector('.orb').style.transform =
-                `translate(${mouseX * 50}px, ${mouseY * 50}px)`;
-        });
-
-        // Keyboard magic
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
-                e.preventDefault();
-                magicBtn.click();
-            }
-        });
-
-        // Console easter egg
-        console.log('%c✨ Chào mừng bạn đến với Vũ Trụ Kỳ Diệu! ✨',
-            'font-size: 24px; color: #ff0080; text-shadow: 0 0 10px #8a2be2;');
-        console.log('%cĐược tạo bởi AI với ❤️',
-            'font-size: 14px; color: #00ff88;');
+        console.log('%c🌌 HYPER CORE - Vũ Trụ Hùng Vĩ 🌌',
+            'font-size: 20px; color: #00ffff; text-shadow: 0 0 20px #ff00ff;');
+        console.log('%cĐiều khiển bằng tay - Powered by Three.js & MediaPipe',
+            'font-size: 12px; color: #ff00ff;');
     </script>
 </body>
 
