@@ -1,19 +1,19 @@
 // Service Worker for Web Nice PWA
 const CACHE_NAME = 'webnice-v1';
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/G.html',
-    '/GAIS.html',
-    '/Claude.html',
-    '/Gwebcam.html',
-    '/ChatGPT.html',
-    '/GS.html',
-    '/Z.html',
-    '/ds.html',
-    '/gork.html',
-    '/manus.html',
-    '/perplexity.html'
+    './',
+    './index.html',
+    './G.html',
+    './GAIS.html',
+    './Claude.html',
+    './Gwebcam.html',
+    './ChatGPT.html',
+    './GS.html',
+    './Z.html',
+    './ds.html',
+    './gork.html',
+    './manus.html',
+    './perplexity.html'
 ];
 
 // Install event - cache resources

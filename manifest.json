@@ -2,7 +2,7 @@
     "name": "Web Nice - Bộ Sưu Tập Trải Nghiệm Web",
     "short_name": "Web Nice",
     "description": "Bộ sưu tập các trang web tương tác với hiệu ứng đẹp mắt",
-    "start_url": "/index.html",
+    "start_url": "./index.html",
     "display": "standalone",
     "display_override": [
         "standalone",
@@ -12,7 +12,7 @@
     "orientation": "any",
     "background_color": "#05060a",
     "theme_color": "#ff00ff",
-    "scope": "/",
+    "scope": "./",
     "lang": "vi",
     "categories": [
         "entertainment",
